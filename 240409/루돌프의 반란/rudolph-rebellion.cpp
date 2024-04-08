@@ -139,7 +139,7 @@ vector<int> solution(int n, int m, int p, int c, int d, vector<struct pos>& sant
                 check_knockback(santa, board, out, dir, index, n); // 이 함수의 세부 구현은 여기서 생략
                 board[newR][newC] = index;
             }
-            score[index] += d;
+            score[index] += c;
             stun[index] += 2;
         } 
 
@@ -191,7 +191,7 @@ vector<int> solution(int n, int m, int p, int c, int d, vector<struct pos>& sant
                     check_knockback(santa, board, out, dir, i, n);
                     board[newR][newC] = i;
                 }
-                score[i] += c + 1;
+                score[i] += d + 1;
                 stun[i] += 1;
             } else {
                 int newR = santa[i].r + dir.r;
