@@ -124,8 +124,8 @@ vector<int> solution(int n, int m, int p, int c, int d, vector<struct pos>& sant
 
         if (board[rudol.r + dir.r][rudol.c + dir.c] > none) {
             // 새로운 위치를 계산
-            int newR = santa[index].r + dir.r * d;
-            int newC = santa[index].c + dir.c * d;
+            int newR = santa[index].r + dir.r * c;
+            int newC = santa[index].c + dir.c * c;
 
             // 경계를 벗어나는지 체크
             if (isOutOfBounds(newR, newC, n)) {
