@@ -204,6 +204,8 @@ vector<int> solution(int n, int m, int p, int c, int d, vector<struct pos>& sant
                 ++score[i];
             }
         }
+
+        
     }
 
     return score;
