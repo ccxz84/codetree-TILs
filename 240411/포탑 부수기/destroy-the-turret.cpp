@@ -172,7 +172,7 @@ void bomb_attack(struct pos attacker, struct pos target) {
         // 새 위치가 배열 범위를 벗어날 수 있으므로 조정
         adjustPos(newR, newC);
 
-        if (board[newR][newC] > 0) {
+        if (board[newR][newC] > 0 && newR != attacker.r && newC != attacker.c) {
             board[newR][newC] -= dmg / 2;
             lastDamage[newR][newC] = 1;
         }
@@ -198,9 +198,13 @@ void solution() {
 
         struct pos attacker = find_attacker();
 
+        
+
         // cout<<"attacker: "<<attacker.r<<' '<<attacker.c<<'\n';
         lastAttack[attacker.r][attacker.c] = i;
         struct pos target = find_target();
+
+        if (attacker.r == target.r && attacker.c == target.c) return;
         // cout<<"target: "<<target.r<<' '<<target.c<<'\n';
 
         board[attacker.r][attacker.c] += n + m;
