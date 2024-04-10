@@ -146,6 +146,7 @@ bool isInsideSquare(int topLeftX, int topLeftY, int size, int x, int y) {
 
 void rotation() {
     pair<int, struct pos> target = find_location();
+    if(target.first < 0) return;
     // cout<<target.first<<' '<<target.second.r<<' '<<target.second.c<<'\n';
     vector<vector<int>> temp(target.first, vector<int>(target.first));
 
