@@ -172,7 +172,7 @@ void bomb_attack(struct pos attacker, struct pos target) {
         // 새 위치가 배열 범위를 벗어날 수 있으므로 조정
         adjustPos(newR, newC);
 
-        if (board[newR][newC] > 0 && newR != attacker.r && newC != attacker.c) {
+        if (board[newR][newC] > 0) {
             board[newR][newC] -= dmg / 2;
             lastDamage[newR][newC] = 1;
         }
