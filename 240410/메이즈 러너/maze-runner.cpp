@@ -108,26 +108,26 @@ pair<int, struct pos> find_location() {
         struct pos target = people[i];
 
         int diffX = abs(target.r - exitR), diffY = abs(target.c - exitC);
-        pair<int, pair<int, int>> check = {max(diffX, diffY), {target.r, target.c}};
+        int minR = max(target.r, exitR) - max(diffX, diffY);
+        int minC = max(target.c, exitC) - max(diffX, diffY);
+
+        pair<int, pair<int, int>> check = {max(diffX, diffY), {minR < 0 ? 0 : minR, minC < 0 ? 0 : minC}};
         
         if (check < val) {
             val = check;
             index = i;
         }
     }
-    // cout<<exitR<<exitC<<'\n';
-    // cout<<index<<val.second.first<<val.second.second<<'\n';
+
     
-    int minR = max(val.second.first, exitR) - val.first;
-    int minC = max(val.second.second, exitC) - val.first;
+    
 
     // cout<<val.first<<' '<<val.second.first<<' '<<val.second.second<<'\n';
 
     // cout<<min(val.second.first, exitR)<<' '<<min(val.second.first, exitC)<<'\n';
     
-    // cout<<(minR < 0 ? 0 : minR)<<' '<<(minC < 0 ? 0 : minC)<<'\n';
 
-    return {val.first + 1, {minR < 0 ? 0 : minR, minC < 0 ? 0 : minC}};
+    return {val.first + 1, {val.second.first, val.second.second}};
 }
 
 struct pos rotateLeft90InSquare(int topLeftRow, int topLeftCol, int size, int row, int col) {
@@ -146,8 +146,8 @@ bool isInsideSquare(int topLeftX, int topLeftY, int size, int x, int y) {
 
 void rotation() {
     pair<int, struct pos> target = find_location();
-    if(target.first < 0) return;
-    // cout<<target.first<<' '<<target.second.r<<' '<<target.second.c<<'\n';
+    if (target.first < 0) return;
+    // cout<<target.first<<' '<<target.second.r+1<<' '<<target.second.c+1<<'\n';
     vector<vector<int>> temp(target.first, vector<int>(target.first));
 
     for(int i = 0; i < target.first; ++i) {
@@ -234,7 +234,7 @@ int main() {
     solution();
 
     cout<<ans<<'\n';
-    cout<<exitR+1<<' '<<exitC+1<<'\n';
     
+    cout<<exitR+1<<' '<<exitC+1<<'\n';
     return 0;
 }
