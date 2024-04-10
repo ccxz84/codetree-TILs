@@ -203,7 +203,7 @@ int main() {
 
     board = vector<vector<int>>(n, vector<int>(n));
     dist = vector<int>(m, 0);
-    people = vector<struct pos>(n);
+    people = vector<struct pos>(m);
     extraction = vector<bool>(m, false);
 
     for(int i = 0; i < n; ++i) {
