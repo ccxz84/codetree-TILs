@@ -16,7 +16,7 @@ vector<vector<int>> board(10, vector<int>(10, 0));
 vector<vector<int>> lastAttack(10, vector<int>(10, -1));
 vector<vector<int>> lastDamage(10, vector<int>(10, -1));
 
-int dirX[4] = {0, -1, 0, 1};
+int dirX[4] = {0, 1, 0, -1};
 int dirY[4] = {1, 0, -1, 0};
 
 int bomb_dirX[8] = {0, 1, 0, -1, 1, 1, -1, -1};
@@ -198,16 +198,14 @@ void solution() {
         lastDamage = vector<vector<int>>(10, vector<int>(10, -1));
 
         struct pos attacker = find_attacker();
-
-        
-
         // cout<<"attacker: "<<attacker.r<<' '<<attacker.c<<'\n';
-        lastAttack[attacker.r][attacker.c] = i;
-        struct pos target = find_target();
 
-        if (attacker.r == target.r && attacker.c == target.c) return;
+        struct pos target = find_target();
         // cout<<"target: "<<target.r<<' '<<target.c<<'\n';
 
+        if (attacker.r == target.r && attacker.c == target.c) return;
+
+        lastAttack[attacker.r][attacker.c] = i;
         board[attacker.r][attacker.c] += n + m;
 
         if (!try_laser_attack(attacker, target, i)){
