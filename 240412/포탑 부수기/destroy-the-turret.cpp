@@ -23,12 +23,50 @@ int bomb_dirX[8] = {0, 1, 0, -1, 1, 1, -1, -1};
 int bomb_dirY[8] = {1, 0, -1, 0, 1, -1, 1, -1};
 
 void print_board() {
+    cout<<"board \n";
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             cout<<board[i][j]<<' ';
         }
         cout<<'\n';
     }
+}
+
+void print_attack() {
+    cout<<"last attack \n";
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            cout<<lastAttack[i][j]<<' ';
+        }
+        cout<<'\n';
+    }
+}
+
+void print_damage() {
+    cout<<"last damage \n";
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            cout<<lastDamage[i][j]<<' ';
+        }
+        cout<<'\n';
+    }
+}
+
+void adjustPos(int& r, int& c) {
+    // 행 위치 조정
+    if (r < 0) r = n - ((-r) % n);
+    else if (r >= n) r = r % n;
+
+    // 열 위치 조정
+    if (c < 0) c =  m - ((-c) % m);
+    else if (c >= m) c = c % m;
+}
+
+bool compare(struct pos a, struct pos b) {
+    if(board[a.r][a.c] != board[b.r][b.c]) return board[a.r][a.c] < board[b.r][b.c];
+    if(lastAttack[a.r][a.c] != lastAttack[b.r][b.c]) return lastAttack[a.r][a.c] > lastAttack[b.r][b.c];
+    if(a.r + a.c != b.r + b.c) return a.r + a.c > b.r + b.c;
+    return a.c > b.c;
 }
 
 // 선정 기준
@@ -42,7 +80,9 @@ struct pos find_attacker() {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             if (board[i][j] <= 0) continue; // 포탑이 없는 경우 건너뜁니다.
-            // 가장 약한 포탑을 찾는 조건들을 순서대로 적용합니다.
+            // // 가장 약한 포탑을 찾는 조건들을 순서대로 적용합니다.
+
+            // cout<<i<<' '<<j<<' '<<weakest.r<<' '<<weakest.c<<'\n';
             if (weakest.r == -1 || // 아직 포탑을 찾지 못했거나,
                 board[i][j] < board[weakest.r][weakest.c] || // 더 낮은 공격력을 가진 포탑을 찾았거나,
                 (board[i][j] == board[weakest.r][weakest.c] && // 공격력이 같고 최근에 공격한 포탑을 찾았거나,
@@ -50,9 +90,17 @@ struct pos find_attacker() {
                 (board[i][j] == board[weakest.r][weakest.c] && // 공격력과 마지막 공격 시간이 같고,
                  lastAttack[i][j] == lastAttack[weakest.r][weakest.c] &&
                  (i + j > weakest.r + weakest.c || // 행과 열의 합이 더 크거나,
-                  (i + j == weakest.r + weakest.c && i > weakest.r)))) { // 행과 열의 합이 같을 때 열의 값이 더 큽니다.
+                  (i + j == weakest.r + weakest.c && j > weakest.c)))) { // 행과 열의 합이 같을 때 열의 값이 더 큽니다.
                 weakest = {i, j}; // 새로운 가장 약한 포탑으로 업데이트합니다.
             }
+            // if (weakest.r == -1 && board[i][j] > 0) {
+            //     weakest = {i, j};
+            //     cout<<i<<' '<<j<<'\n';
+            //     continue;
+            // }
+            // if (weakest.r != -1 && compare({i, j}, weakest)) {
+            //     weakest = {i, j};
+            // }
         }
     }
     return weakest; // 가장 약한 포탑의 위치를 반환합니다.
@@ -68,7 +116,7 @@ struct pos find_target() {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             if (board[i][j] <= 0) continue; // 포탑이 없는 경우 건너뜁니다.
-            // 가장 강한 포탑을 찾는 조건들을 순서대로 적용합니다.
+            // // 가장 강한 포탑을 찾는 조건들을 순서대로 적용합니다.
             if (strongest.r == -1 || // 아직 포탑을 찾지 못했거나,
                 board[i][j] > board[strongest.r][strongest.c] || // 더 큰 공격력을 가진 포탑을 찾았거나,
                 (board[i][j] == board[strongest.r][strongest.c] && // 공격력이 같고 마지막 공격 시간이 더 오래되었거나,
@@ -76,9 +124,16 @@ struct pos find_target() {
                 (board[i][j] == board[strongest.r][strongest.c] && // 공격력과 마지막 공격 시간이 같고,
                  lastAttack[i][j] == lastAttack[strongest.r][strongest.c] &&
                  (i + j < strongest.r + strongest.c || // 행과 열의 합이 더 작거나,
-                  (i + j == strongest.r + strongest.c && i < strongest.r)))) { // 행과 열의 합이 같을 때 열의 값이 더 작습니다.
+                  (i + j == strongest.r + strongest.c && j < strongest.c)))) { // 행과 열의 합이 같을 때 열의 값이 더 작습니다.
                 strongest = {i, j}; // 새로운 가장 강한 포탑으로 업데이트합니다.
             }
+            // if (strongest.r == -1 && board[i][j] > 0) {
+            //     strongest = {i, j};
+            //     continue;
+            // }
+            // if (strongest.r != -1 && !compare({i, j}, strongest)) {
+            //     strongest = {i, j};
+            // }
         }
     }
     return strongest; // 가장 강한 포탑의 위치를 반환합니다.
@@ -88,15 +143,6 @@ struct pos find_target() {
 // 최단 거리를 찾아서 공격 (우하좌상)
 // 대상에는 공격력, 경로에는 1/2(몫)
 // 무조건 1씩 증가하므로
-void adjustPos(int& r, int& c) {
-    // 행 위치 조정
-    if (r < 0) r = n - 1;
-    else if (r >= n) r = 0;
-
-    // 열 위치 조정
-    if (c < 0) c = m - 1;
-    else if (c >= m) c = 0;
-}
 
 bool try_laser_attack(struct pos attacker, struct pos target, int turn) {
     int dmg = board[attacker.r][attacker.c];
@@ -119,13 +165,10 @@ bool try_laser_attack(struct pos attacker, struct pos target, int turn) {
 
         for (int i = 0; i < 4; ++i) {
             int newR = position.r + dirX[i], newC = position.c + dirY[i];
-            // cout<<newR<<' '<<newC<<'\n';
             adjustPos(newR, newC);
-            // cout<<newR<<' '<<newC<<"\n\n";
             if(!visited[newR][newC] && board[newR][newC] > 0) {
                 visited[newR][newC] = true;
                 prev[newR][newC] = position;
-                // cout<<position.r<<' '<<position.c<<"  "<<newR<<' '<<newC<<'\n';
                 q.push({newR, newC});
             }
         }
@@ -142,10 +185,12 @@ bool try_laser_attack(struct pos attacker, struct pos target, int turn) {
     lastDamage[attacker.r][attacker.c] = 1;
     lastDamage[target.r][target.c] = 1;
 
+    // cout<<"path: "<<target.r<<target.c<<'\n';
+
     struct pos at = prev[target.r][target.c];
     if (at.r != -1) {
         for (; prev[at.r][at.c].r != -1 && prev[at.r][at.c].c != -1; at = prev[at.r][at.c]){
-            // cout<<"path : "<<at.r<<' '<<at.c<<'\n';
+            // cout<<"path: "<<at.r<<at.c<<'\n';
             board[at.r][at.c] -= dmg / 2;
             lastDamage[at.r][at.c] = 1;
         }
@@ -168,7 +213,7 @@ void bomb_attack(struct pos attacker, struct pos target) {
     for(int i = 0; i < 8; ++i) {
         int newR = target.r + bomb_dirX[i];
         int newC = target.c + bomb_dirY[i];
-        
+
         // 새 위치가 배열 범위를 벗어날 수 있으므로 조정
         adjustPos(newR, newC);
         // cout<<newR<<' '<<newC<<' '<<board[newR][newC]<<'\n';
@@ -198,14 +243,16 @@ void solution() {
         lastDamage = vector<vector<int>>(10, vector<int>(10, -1));
 
         struct pos attacker = find_attacker();
-        // cout<<"attacker: "<<attacker.r<<' '<<attacker.c<<'\n';
 
+        
+
+        // cout<<"attacker: "<<attacker.r<<' '<<attacker.c<<'\n';
+        lastAttack[attacker.r][attacker.c] = i;
         struct pos target = find_target();
         // cout<<"target: "<<target.r<<' '<<target.c<<'\n';
 
         if (attacker.r == target.r && attacker.c == target.c) return;
 
-        lastAttack[attacker.r][attacker.c] = i;
         board[attacker.r][attacker.c] += n + m;
 
         if (!try_laser_attack(attacker, target, i)){
@@ -214,11 +261,16 @@ void solution() {
         }
 
         non_attacked();
+
+        // print_attack();
+        // cout<<'\n';
         // print_board();
+        // cout<<'\n';
+        // print_damage();
+        // cout<<'\n';
     }
     
 }
-
 
 int main() {
     ios_base::sync_with_stdio(false);
