@@ -16,7 +16,7 @@ vector<vector<int>> board(10, vector<int>(10, 0));
 vector<vector<int>> lastAttack(10, vector<int>(10, -1));
 vector<vector<int>> lastDamage(10, vector<int>(10, -1));
 
-int dirX[4] = {0, -1, 0, 1};
+int dirX[4] = {0, 1, 0, -1};
 int dirY[4] = {1, 0, -1, 0};
 
 int bomb_dirX[8] = {0, 1, 0, -1, 1, 1, -1, -1};
