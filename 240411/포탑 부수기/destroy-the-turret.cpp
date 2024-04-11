@@ -50,7 +50,7 @@ struct pos find_attacker() {
                 (board[i][j] == board[weakest.r][weakest.c] && // 공격력과 마지막 공격 시간이 같고,
                  lastAttack[i][j] == lastAttack[weakest.r][weakest.c] &&
                  (i + j > weakest.r + weakest.c || // 행과 열의 합이 더 크거나,
-                  (i + j == weakest.r + weakest.c && j > weakest.c)))) { // 행과 열의 합이 같을 때 열의 값이 더 큽니다.
+                  (i + j == weakest.r + weakest.c && i > weakest.r)))) { // 행과 열의 합이 같을 때 열의 값이 더 큽니다.
                 weakest = {i, j}; // 새로운 가장 약한 포탑으로 업데이트합니다.
             }
         }
@@ -76,7 +76,7 @@ struct pos find_target() {
                 (board[i][j] == board[strongest.r][strongest.c] && // 공격력과 마지막 공격 시간이 같고,
                  lastAttack[i][j] == lastAttack[strongest.r][strongest.c] &&
                  (i + j < strongest.r + strongest.c || // 행과 열의 합이 더 작거나,
-                  (i + j == strongest.r + strongest.c && j < strongest.c)))) { // 행과 열의 합이 같을 때 열의 값이 더 작습니다.
+                  (i + j == strongest.r + strongest.c && i < strongest.r)))) { // 행과 열의 합이 같을 때 열의 값이 더 작습니다.
                 strongest = {i, j}; // 새로운 가장 강한 포탑으로 업데이트합니다.
             }
         }
