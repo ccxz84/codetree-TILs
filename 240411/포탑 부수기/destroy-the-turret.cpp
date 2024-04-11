@@ -90,12 +90,12 @@ struct pos find_target() {
 // 무조건 1씩 증가하므로
 void adjustPos(int& r, int& c) {
     // 행 위치 조정
-    if (r < 0) r = n - 1;
-    else if (r >= n) r = 0;
+    if (r < 0) r = n - ((-r) % n);
+    else if (r >= n) r = r % n;
 
     // 열 위치 조정
-    if (c < 0) c = m - 1;
-    else if (c >= m) c = 0;
+    if (c < 0) c =  m - ((-c) % m);
+    else if (c >= m) c = c % m;
 }
 
 bool try_laser_attack(struct pos attacker, struct pos target, int turn) {
