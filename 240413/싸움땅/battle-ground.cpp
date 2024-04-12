@@ -26,6 +26,10 @@ bool is_range(struct pos a) {
 void print_board() {
     for(int i = 0; i < n; ++i) {
         for(int j = 0; j < n; ++j) {
+            if (board[i][j].empty()) {
+                cout<<0<<' ';
+                continue;
+            }
             cout<<board[i][j].top()<<' ';
         }
         cout<<'\n';
@@ -82,8 +86,7 @@ void turn_wall(int idx) {
 }
 
 struct pos move_loser(int idx) {
-    // cout<<"old position: "<<players[idx].position.r<<' '<<players[idx].position.c<<'\n';
-    
+   
     int dirX = -players[idx].dirY;
     int dirY = players[idx].dirX;
     for(int i = 0; i < 4; ++i) {
@@ -91,19 +94,13 @@ struct pos move_loser(int idx) {
         dirX = dirY;
         dirY = -temp;
 
-        // cout<<"dir : "<<dirX<<' '<<dirY<<'\n';
-
         struct pos newPosition = {players[idx].position.r + dirX, players[idx].position.c + dirY};
 
-        // cout<<"new position: "<<newPosition.r<<' '<<newPosition.c<<'\n';
-
         if (!is_range(newPosition)) continue;
-        if (player_board[newPosition.r][newPosition.c] > 0) continue;
+        if (player_board[newPosition.r][newPosition.c] > -1) continue;
 
         players[idx].dirX = dirX;
         players[idx].dirY = dirY;
-
-        // cout<<"new position: "<<newPosition.r<<' '<<newPosition.c<<'\n';
 
         return newPosition;
     }
@@ -115,32 +112,27 @@ bool compare(struct player a, struct player b) {
 }
 
 // 이동한 칸에 적이 있으면 싸움
-void fight_player(int idx, struct pos& newPosition) {
+void fight_player(int attacker, int target) {
     // 이동한 플레이어가 attacker
-    int target = player_board[newPosition.r][newPosition.c];
     // cout<<newPosition.r<<' '<<newPosition.c<<'\n';
 
-    if (compare(players[idx], players[target])) {
-        players[idx].point += players[idx].abil + players[idx].gun - players[target].abil - players[target].gun;
-
-        down_gun(target);
-        get_gun(idx);
-        struct pos prev_location = players[target].position;
-        struct pos target_position = move_loser(target);
-
-        player_board[prev_location.r][prev_location.c] = -1;
-        players[target].position = target_position;
-        player_board[target_position.r][target_position.c] = target;
-
-        get_gun(target);
+    int loser, winner;
+    if (compare(players[attacker], players[target])) {
+        loser = target;
+        winner = attacker;
     } else {
-        // cout<<"패배 \n";
-        players[target].point += players[target].abil + players[target].gun - players[idx].abil - players[idx].gun;
-        down_gun(idx);
-        get_gun(target);
-        newPosition = move_loser(idx);
-        // cout<<"turn move: "<<newPosition.r<<' '<<newPosition.c<<'\n';
+        loser = attacker;
+        winner = target;
     }
+
+    players[winner].point += players[winner].abil + players[winner].gun - players[loser].abil - players[loser].gun;
+
+    down_gun(loser);
+    player_board[players[winner].position.r][players[winner].position.c] = winner;
+    players[loser].position = move_loser(loser);
+    player_board[players[loser].position.r][players[loser].position.c] = loser;
+    get_gun(winner);
+    get_gun(loser);
 }
 
 // 플레이어는 자기가 보는 방향으로 한 칸 이동
@@ -155,20 +147,13 @@ void player_move(int idx) {
     player_board[players[idx].position.r][players[idx].position.c] = -1;
     players[idx].position = newPosition;
 
-    // cout<<idx<<' '<<newPosition.r<<' '<<newPosition.c<<"\n";
-    // cout<<player_board[newPosition.r][newPosition.c]<<"\n\n";
-
     if (player_board[newPosition.r][newPosition.c] > -1) {
-        // cout<<idx<<' '<<"find?\n\n";
-        fight_player(idx, newPosition);
-        players[idx].position = newPosition;
-        
-    }
-
-    player_board[newPosition.r][newPosition.c] = idx;
-    
-    down_gun(idx);
-    get_gun(idx);
+        int target = player_board[newPosition.r][newPosition.c];
+        fight_player(idx, target);
+    } else {
+        player_board[newPosition.r][newPosition.c] = idx;
+        get_gun(idx);
+    }  
 }
 
 void solution() {
@@ -212,8 +197,6 @@ int main() {
         players[i].abil = s;
         player_board[x-1][y-1] = i;
     }
-
-    // cout<<"turn : 0\n";
 
     // print_board();
     // print_player_board();
