@@ -35,8 +35,8 @@ void print_knights() {
     cout<<'\n';
 }
 
-bool is_range(int r, int c) {
-    return r >= 0 && r < l && c >= 0 && c < l;
+bool is_range(struct knight a) {
+    return a.r >= 0 && a.r < l && a.c >= 0 && a.c < l && a.r + a.h - 1 >= 0 && a.r + a.h - 1 < l && a.c + a.w - 1 >= 0 && a.c + a.w - 1 < l;
 }
 
 bool is_overlap(struct knight a, struct knight b) {
@@ -71,13 +71,14 @@ bool try_move() {
 
         current_knight.r += dirX[dir]; current_knight.c += dirY[dir];
 
-        if (!is_range(current_knight.r, current_knight.c)) {
+        if (!is_range(current_knight)) {
             // cout<<"1 out knights: "<<current<<'\n';
             return false;
         }
 
         for (int i = current_knight.r; i < current_knight.r + current_knight.h; ++i) {
             for (int j = current_knight.c; j < current_knight.c + current_knight.w; ++j) {
+                // cout<<"error "<<i<<' '<<j<<'\n';
                 if (board[i][j] == 1)
                     ++dmg[current];
                 else if (board[i][j] == 2){
@@ -126,44 +127,6 @@ void move_knight() {
 // 체력 0 이하면 사라짐
 // 직접 명령 받은 기사는 피해 안입음
 // 밀려나도 함정 없으면 피해 안입음
-
-
-
-
-// int test_1() {
-//     l = 4; n = 3;
-//     board = {{
-//         0,0, 1, 0
-//     },{
-//         0, 0, 1, 0
-//     },{
-//         1, 1, 0, 1
-//     },{
-//         0, 0, 2, 0
-//     }};
-
-//     knights = {{
-//         0, 1, 2, 1, 5, 5
-//     },{
-//         1, 0, 2, 1, 1, 1
-//     },{
-//         2, 1, 1, 2, 3, 3
-//     }};
-
-//     target = 1; dir = 1;
-
-//     print_knights();
-
-//     try_move();
-
-//     target = 2; dir = 3;
-
-//     try_move();
-
-//     print_board();
-//     print_knights();
-//     return 0;
-// }
 
 int main() {
     cin>>l>>n>>q;
