@@ -3,6 +3,7 @@
 #include <queue>
 #include <vector>
 #include <climits>
+#include <functional>
 //#include <unordered_set>
 #include <unordered_map>
 using namespace std;
@@ -27,6 +28,7 @@ struct travel {
 };
 
 int n;
+
 int startPoint;
 
 int dist[2000][2000];
@@ -40,9 +42,35 @@ bool heapCompare(struct travel a, struct travel b) {
 
 }
 
+//bool heapCompare(struct travel a, struct travel b) {
+//    // 매출 - 비용 값이 클수록 우선
+//    if (a.reve - dist[startPoint][a.dest] != b.reve - dist[startPoint][b.dest]) {
+//        return a.reve - dist[startPoint][a.dest] > b.reve - dist[startPoint][b.dest];
+//    }
+//    // 매출 - 비용 값이 같으면, ID가 작은 것이 우선
+//    return a.id < b.id;
+//}
+
+
 
 unordered_map<int, pair<int, int>> travels;
-vector<priority_queue<travel, vector<travel>, decltype(&heapCompare)>> queues(2000, priority_queue<travel, vector<travel>, decltype(&heapCompare)>(heapCompare));
+vector<priority_queue<travel, vector<travel>, function<bool(travel, travel)>>> queues;
+
+void initializeQueues() {
+    // 각 우선순위 큐에 해당하는 비교 함수 설정
+    for (int i = 0; i < 2000; ++i) {
+        auto heapCompare = [i](struct travel a, struct travel b) {
+            // 우선순위 큐 인덱스 i에 해당하는 비교 기준 설정
+            if (a.reve - dist[i][a.dest] != b.reve - dist[i][b.dest]) {
+                return a.reve - dist[i][a.dest] < b.reve - dist[i][b.dest];
+            }
+            return a.id > b.id;
+            };
+
+        // i번째 우선순위 큐에 맞는 비교 함수 적용
+        queues.emplace_back(priority_queue<travel, vector<travel>, function<bool(travel, travel)>>(heapCompare));
+    }
+}
 
 void dijkstra(int start) {
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
@@ -173,6 +201,8 @@ int main() {
 
     cin >> q;
     startPoint = 0;
+
+    initializeQueues();
 
     for (int i = 0; i < q; ++i) {
         int code;
