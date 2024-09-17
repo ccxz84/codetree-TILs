@@ -42,7 +42,7 @@ bool heapCompare(struct travel a, struct travel b) {
 
 
 unordered_map<int, pair<int, int>> travels;
-priority_queue<struct travel, vector<struct travel>, decltype(&heapCompare)> qu(heapCompare);
+vector<priority_queue<travel, vector<travel>, decltype(&heapCompare)>> queues(2000, priority_queue<travel, vector<travel>, decltype(&heapCompare)>(heapCompare));
 
 void dijkstra(int start) {
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
@@ -87,15 +87,29 @@ void insertNode() {
     }
 }
 
-void insertTravel() {
-    struct travel newTravel;
+//void insertTravel() {
+//    struct travel newTravel;
+//
+//    cin >> newTravel.id >> newTravel.reve >> newTravel.dest;
+//
+//    travels[newTravel.id] = { newTravel.dest, newTravel.reve };
+//
+//    if (newTravel.reve - dist[startPoint][newTravel.dest] >= 0) {
+//        qu.push(newTravel);
+//    }
+//}
 
+void insertTravel() {
+    travel newTravel;
     cin >> newTravel.id >> newTravel.reve >> newTravel.dest;
 
     travels[newTravel.id] = { newTravel.dest, newTravel.reve };
 
-    if (newTravel.reve - dist[startPoint][newTravel.dest] >= 0) {
-        qu.push(newTravel);
+    // 각 출발 지점별 큐에 travel 삽입
+    for (int i = 0; i < n; ++i) {
+        if (newTravel.reve - dist[i][newTravel.dest] >= 0) {
+            queues[i].push(newTravel);  // i번째 출발 지점 큐에 삽입
+        }
     }
 }
 
@@ -105,14 +119,32 @@ void removeTravel() {
     travels.erase(id);
 }
 
+//int popTravel() {
+//    while (!qu.empty() && travels.find(qu.top().id) == travels.end()) {
+//        qu.pop();
+//    }
+//
+//    if (!qu.empty()) {
+//        int id = qu.top().id;
+//        qu.pop();
+//        travels.erase(id);
+//        return id;
+//    }
+//
+//    return -1;
+//}
+
 int popTravel() {
-    while (!qu.empty() && travels.find(qu.top().id) == travels.end()) {
-        qu.pop();
+    // 현재 출발 지점에 맞는 큐에서 pop
+    auto& currentQueue = queues[startPoint];
+
+    while (!currentQueue.empty() && travels.find(currentQueue.top().id) == travels.end()) {
+        currentQueue.pop();  // 유효하지 않은 항목은 제거
     }
 
-    if (!qu.empty()) {
-        int id = qu.top().id;
-        qu.pop();
+    if (!currentQueue.empty()) {
+        int id = currentQueue.top().id;
+        currentQueue.pop();
         travels.erase(id);
         return id;
     }
@@ -123,17 +155,17 @@ int popTravel() {
 void changeStart() {
     cin >> startPoint;
 
-    while (!qu.empty()) {
-        qu.pop();
-    }
+    //while (!qu.empty()) {
+    //    qu.pop();
+    //}
 
-    for (auto& t : travels) {
-        struct travel tra = { t.first, t.second.second, t.second.first };
+    //for (auto& t : travels) {
+    //    struct travel tra = { t.first, t.second.second, t.second.first };
 
-        if (tra.reve - dist[startPoint][tra.dest] >= 0) {
-            qu.push(tra);
-        }
-    }
+    //    if (tra.reve - dist[startPoint][tra.dest] >= 0) {
+    //        qu.push(tra);
+    //    }
+    //}
 }
 
 int main() {
