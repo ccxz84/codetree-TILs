@@ -130,7 +130,7 @@ void changeStart() {
     for (auto& t : travels) {
         struct travel tra = { t.first, t.second.second, t.second.first };
 
-        if (dist[startPoint][tra.dest] != INT_MAX) {
+        if (tra.reve - dist[startPoint][tra.dest] >= 0) {
             qu.push(tra);
         }
     }
