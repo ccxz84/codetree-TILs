@@ -25,6 +25,7 @@ using namespace std;
 // 500 s (모든 여행 상품의 출발지를 s로 변경) (cost 값 다시 계산 필요)
 
 ifstream inputFile("./input.txt");
+istream* input = &cin;
 
 struct travel {
     int id, reve, dest;
@@ -96,11 +97,11 @@ void dijkstra(int start) {
 
 void insertNode() {
     int m;
-    inputFile >> n >> m;
+    *input >> n >> m;
 
     for (int i = 0; i < m; ++i) {
         int v, u, w;
-        inputFile >> v >> u >> w;
+        *input >> v >> u >> w;
 
         graph[v].push_back({ u, w });
         graph[u].push_back({ v, w });
@@ -114,7 +115,7 @@ void insertNode() {
 void insertTravel() {
     struct travel newTravel;
 
-    inputFile >> newTravel.id >> newTravel.reve >> newTravel.dest;
+    *input >> newTravel.id >> newTravel.reve >> newTravel.dest;
 
     travels[newTravel.id] = { newTravel.dest, newTravel.reve };
 
@@ -125,7 +126,7 @@ void insertTravel() {
 
 void removeTravel() {
     int id;
-    inputFile >> id;
+    *input >> id;
     travels.erase(id);
 }
 
@@ -145,7 +146,7 @@ int popTravel() {
 }
 
 void changeStart() {
-    inputFile >> startPoint;
+    *input >> startPoint;
 
     qu = priority_queue < travel, vector<travel>, function<bool(travel, travel)>>(heapCompare);
 
@@ -161,12 +162,12 @@ void changeStart() {
 int main() {
     int q;
 
-    if (!inputFile.is_open()) {
-        cerr << "Error: Could not open the input file." << endl;
-        return 1; // 프로그램 종료
+    if (inputFile.is_open()) {
+        input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
     }
 
-    inputFile >> q;
+
+    *input >> q;
     startPoint = 0;
 
     //initializeQueues();
@@ -175,7 +176,7 @@ int main() {
 
     for (int i = 0; i < q; ++i) {
         int code;
-        inputFile >> code;
+        *input >> code;
         
 
         switch (code) {
