@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <queue>
 #include <vector>
 #include <climits>
@@ -23,6 +24,8 @@ using namespace std;
 // 출발지 변경
 // 500 s (모든 여행 상품의 출발지를 s로 변경) (cost 값 다시 계산 필요)
 
+ifstream inputFile("./input.txt");
+
 struct travel {
     int id, reve, dest;
 };
@@ -33,14 +36,6 @@ int startPoint;
 
 int dist[2000][2000];
 vector<vector<pair<int, int>>> graph(2000);
-
-//bool heapCompare(struct travel a, struct travel b) {
-//    if (a.reve - dist[startPoint][a.dest] != b.reve - dist[startPoint][b.dest]) {
-//        return a.reve - dist[startPoint][a.dest] < b.reve - dist[startPoint][b.dest];
-//    }
-//    return a.id > b.id;
-//
-//}
 
 bool heapCompare(struct travel a, struct travel b) {
     // 매출 - 비용 값이 클수록 우선
@@ -101,11 +96,11 @@ void dijkstra(int start) {
 
 void insertNode() {
     int m;
-    cin >> n >> m;
+    inputFile >> n >> m;
 
     for (int i = 0; i < m; ++i) {
         int v, u, w;
-        cin >> v >> u >> w;
+        inputFile >> v >> u >> w;
 
         graph[v].push_back({ u, w });
         graph[u].push_back({ v, w });
@@ -119,7 +114,7 @@ void insertNode() {
 void insertTravel() {
     struct travel newTravel;
 
-    cin >> newTravel.id >> newTravel.reve >> newTravel.dest;
+    inputFile >> newTravel.id >> newTravel.reve >> newTravel.dest;
 
     travels[newTravel.id] = { newTravel.dest, newTravel.reve };
 
@@ -128,23 +123,9 @@ void insertTravel() {
     }
 }
 
-//void insertTravel() {
-//    travel newTravel;
-//    cin >> newTravel.id >> newTravel.reve >> newTravel.dest;
-//
-//    travels[newTravel.id] = { newTravel.dest, newTravel.reve };
-//
-//    // 각 출발 지점별 큐에 travel 삽입
-//    for (int i = 0; i < n; ++i) {
-//        if (newTravel.reve - dist[i][newTravel.dest] >= 0) {
-//            queues[i].push(newTravel);  // i번째 출발 지점 큐에 삽입
-//        }
-//    }
-//}
-
 void removeTravel() {
     int id;
-    cin >> id;
+    inputFile >> id;
     travels.erase(id);
 }
 
@@ -163,30 +144,10 @@ int popTravel() {
     return -1;
 }
 
-//int popTravel() {
-//     //현재 출발 지점에 맞는 큐에서 pop
-//    auto& currentQueue = queues[startPoint];
-//
-//    while (!currentQueue.empty() && travels.find(currentQueue.top().id) == travels.end()) {
-//        currentQueue.pop();  // 유효하지 않은 항목은 제거
-//    }
-//
-//    if (!currentQueue.empty()) {
-//        int id = currentQueue.top().id;
-//        currentQueue.pop();
-//        travels.erase(id);
-//        return id;
-//    }
-//
-//    return -1;
-//}
-
 void changeStart() {
-    cin >> startPoint;
+    inputFile >> startPoint;
 
-    while (!qu.empty()) {
-        qu.pop();
-    }
+    qu = priority_queue < travel, vector<travel>, function<bool(travel, travel)>>(heapCompare);
 
     for (auto& t : travels) {
         struct travel tra = { t.first, t.second.second, t.second.first };
@@ -200,14 +161,22 @@ void changeStart() {
 int main() {
     int q;
 
-    cin >> q;
+    if (!inputFile.is_open()) {
+        cerr << "Error: Could not open the input file." << endl;
+        return 1; // 프로그램 종료
+    }
+
+    inputFile >> q;
     startPoint = 0;
 
     //initializeQueues();
 
+    
+
     for (int i = 0; i < q; ++i) {
         int code;
-        cin >> code;
+        inputFile >> code;
+        
 
         switch (code) {
         case 100:
