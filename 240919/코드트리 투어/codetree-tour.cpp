@@ -52,6 +52,7 @@ bool heapCompare(struct travel a, struct travel b) {
 unordered_map<int, pair<int, int>> travels;
 priority_queue < travel, vector<travel>, function<bool(travel, travel)>> qu(heapCompare);
 vector<priority_queue<travel, vector<travel>, function<bool(travel, travel)>>> queues;
+vector<bool>isDijk(2000, false);
 
 void initializeQueues() {
     // 각 우선순위 큐에 해당하는 비교 함수 설정
@@ -93,6 +94,7 @@ void dijkstra(int start) {
             }
         }
     }
+    isDijk[start] = true;
 }
 
 void insertNode() {
@@ -107,9 +109,11 @@ void insertNode() {
         graph[u].push_back({ v, w });
     }
 
-    for (int i = 0; i < n; ++i) {
+    dijkstra(startPoint);
+
+    /*for (int i = 0; i < n; ++i) {
         dijkstra(i);
-    }
+    }*/
 }
 
 void insertTravel() {
@@ -149,6 +153,10 @@ void changeStart() {
     *input >> startPoint;
 
     qu = priority_queue < travel, vector<travel>, function<bool(travel, travel)>>(heapCompare);
+
+    if (!isDijk[startPoint]) {
+        dijkstra(startPoint);
+    }
 
     for (auto& t : travels) {
         struct travel tra = { t.first, t.second.second, t.second.first };
