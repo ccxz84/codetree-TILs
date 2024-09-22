@@ -89,17 +89,17 @@ inline int getDistance(int sushiPos, int personPos) {
 inline int getDistance(people person, sushi su) {
     int sushiPos, offset = 0;
     if (person.tick - su.tick >= 0) {
-        sushiPos = ((person.tick - su.tick) + su.pos) % L;
+        sushiPos = ((person.tick - su.tick) + su.pos) % 5L;
         offset = person.tick - su.tick;
     }
     else {
         sushiPos = su.pos;
     }
 
-    //int ret = getDistance(sushiPos, person.pos) + offset;
-    //return ret;
+    int ret = getDistance(sushiPos, person.pos) + offset;
+    return ret;
 
-    return getDistance(sushiPos, person.pos) + offset;
+    //return getDistance(sushiPos, person.pos) + offset;
 }
 
 //int runcount;
@@ -109,15 +109,18 @@ void printResult() {
     int tick;
 
     *input >> tick;
+    
+    unordered_map<string, people> newPeople;
 
-    for (auto it = peopleList.begin(); it != peopleList.end(); ) {
+    for (auto it = peopleList.begin(); it != peopleList.end(); ++it) {
         string name = it->first;
-        people& person = it->second;
+        people person = it->second;
 
         vector<sushi> backup(sushiList[name]);
         vector<sushi> newList(0);
+        int i = 0;
 
-        for (int i = 0; i < backup.size(); ++i) {
+        for (; i < backup.size(); ++i) {
             int dis = getDistance(person, backup[i]);
 
             // debugFile << backup[i].name << ' ' << dis << '\n';
@@ -131,19 +134,22 @@ void printResult() {
 
             // 여기서 사람의 초밥이 다 먹었을 경우 삭제
             if (person.num == 0) {
-                it = peopleList.erase(it);  // 유효한 반복자를 반환받아 갱신
-                newList.insert(newList.end(), backup.begin() + i + 1, backup.end());
+                ++i;
                 break;
             }
         }
 
-        sushiList[name] = newList;
-
-        // 삭제가 이루어지지 않았다면, 반복자를 증가시킴
-        if (it != peopleList.end()) {
-            ++it;
+        if (person.num != 0) {
+            newPeople[name] = person;
         }
+
+        newList.insert(newList.end(), backup.begin() + i, backup.end());
+        
+
+        sushiList[name] = newList;
     }
+
+    peopleList = newPeople;
 
     //debugFile << '\n';
     *output << peopleList.size() << ' ' << sushiCount <<'\n';
