@@ -134,7 +134,7 @@ void printResult() {
 
             // 여기서 사람의 초밥이 다 먹었을 경우 삭제
             if (person.num == 0) {
-                ++i;
+                //++i;
                 break;
             }
         }
@@ -143,7 +143,7 @@ void printResult() {
             newPeople[name] = person;
         }
 
-        newList.insert(newList.end(), backup.begin() + i, backup.end());
+        //newList.insert(newList.end(), backup.begin() + i, backup.end());
         
 
         sushiList[name] = newList;
