@@ -110,10 +110,9 @@ void printResult() {
 
     *input >> tick;
 
-    for (auto& pair : peopleList) {
-        string name = pair.first;
-        people& person = pair.second;
-
+    for (auto it = peopleList.begin(); it != peopleList.end(); ) {
+        string name = it->first;
+        people& person = it->second;
 
         vector<sushi> backup(sushiList[name]);
         vector<sushi> newList(0);
@@ -121,18 +120,28 @@ void printResult() {
         for (int i = 0; i < backup.size(); ++i) {
             int dis = getDistance(person, backup[i]);
 
-            //debugFile << backup[i].name << ' ' << dis << '\n';
+            // debugFile << backup[i].name << ' ' << dis << '\n';
 
             if (backup[i].tick + dis > tick) {
                 newList.push_back(backup[i]);
                 continue;
             }
-
+            --sushiCount;
             --person.num;
 
+            // 여기서 사람의 초밥이 다 먹었을 경우 삭제
             if (person.num == 0) {
-                peopleList.erase(name);
+                it = peopleList.erase(it);  // 유효한 반복자를 반환받아 갱신
+                newList.insert(newList.end(), backup.begin() + i + 1, backup.end());
+                break;
             }
+        }
+
+        sushiList[name] = newList;
+
+        // 삭제가 이루어지지 않았다면, 반복자를 증가시킴
+        if (it != peopleList.end()) {
+            ++it;
         }
     }
 
