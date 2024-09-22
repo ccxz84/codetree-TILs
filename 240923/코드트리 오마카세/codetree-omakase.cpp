@@ -89,7 +89,7 @@ inline int getDistance(int sushiPos, int personPos) {
 inline int getDistance(people person, sushi su) {
     int sushiPos, offset = 0;
     if (person.tick - su.tick >= 0) {
-        sushiPos = ((person.tick - su.tick) + su.pos) % 5L;
+        sushiPos = ((person.tick - su.tick) + su.pos) %  L;
         offset = person.tick - su.tick;
     }
     else {
@@ -102,15 +102,17 @@ inline int getDistance(people person, sushi su) {
     //return getDistance(sushiPos, person.pos) + offset;
 }
 
-//int runcount;
+int runcount;
 
 void printResult() {
-    //++runcount;
+    ++runcount;
     int tick;
 
     *input >> tick;
     
     unordered_map<string, people> newPeople;
+    debugFile << "count: " << runcount << " tick: " << tick << '\n';
+    debugFile << "before sushicount : " << sushiCount << '\n';
 
     for (auto it = peopleList.begin(); it != peopleList.end(); ++it) {
         string name = it->first;
@@ -120,10 +122,12 @@ void printResult() {
         vector<sushi> newList(0);
         int i = 0;
 
+        debugFile << "user: " << person.tick << '\n';
+
         for (; i < backup.size(); ++i) {
             int dis = getDistance(person, backup[i]);
 
-            // debugFile << backup[i].name << ' ' << dis << '\n';
+             debugFile << name << ' '<< backup[i].pos <<' ' << backup[i].tick << ' ' << dis << '\n';
 
             if (backup[i].tick + dis > tick) {
                 newList.push_back(backup[i]);
@@ -150,15 +154,15 @@ void printResult() {
     }
 
     peopleList = newPeople;
-
-    //debugFile << '\n';
+    debugFile << "after sushicount : " << sushiCount << '\n';
+    debugFile << '\n';
     *output << peopleList.size() << ' ' << sushiCount <<'\n';
 }
 
 int main() {
     int q;
 
-    //runcount = 0;
+    runcount = 0;
     sushiCount = 0;
 
     if (inputFile.is_open()) {
