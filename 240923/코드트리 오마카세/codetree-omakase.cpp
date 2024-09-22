@@ -37,7 +37,6 @@ ostream* output = &cout;
 int L;
 
 struct sushi {
-    string name;
     int pos, tick;
 };
 
@@ -45,8 +44,11 @@ struct people {
     int pos, tick, num;
 };
 
-vector<sushi> sushiList;
+//vector<sushi> sushiList;
+unordered_map <string, vector<sushi>> sushiList;
 unordered_map<string, people> peopleList;
+
+int sushiCount;
 
 // 초밥 리스트를 우선 순위 큐로 저장
 // 정렬 식 사람.tick > 초밥.tick >= 0 ? ((사람.tick - 초밥.tick) + 초밥.pos) % L : 초밥.pos = 초밥 위치
@@ -60,9 +62,12 @@ unordered_map<string, people> peopleList;
 
 void addSushi() {
     sushi newSushi;
-    *input >> newSushi.tick >> newSushi.pos >> newSushi.name;
+    string name;
+    *input >> newSushi.tick >> newSushi.pos >> name;
 
-    sushiList.push_back(newSushi);
+    ++sushiCount;
+
+    sushiList[name].push_back(newSushi);
 }
 
 void addPerson() {
@@ -97,30 +102,6 @@ inline int getDistance(people person, sushi su) {
     return getDistance(sushiPos, person.pos) + offset;
 }
 
-
-bool compareSushi(sushi a, sushi b) {
-    int disA, disB;
-
-    if (peopleList.find(a.name) == peopleList.end()) {
-        return false;
-    }
-    else {
-        people person = peopleList[a.name];
-
-        disA = getDistance(person, a);
-    }
-
-    if (peopleList.find(b.name) == peopleList.end()) {
-        return true;
-    }
-    else {
-        people person = peopleList[a.name];
-        disB = getDistance(person, a);
-    }
-
-    return disA < disB;
-}
-
 //int runcount;
 
 void printResult() {
@@ -129,42 +110,41 @@ void printResult() {
 
     *input >> tick;
 
-    vector<sushi> backup(sushiList);
-    sushiList = vector<sushi>(0);
+    for (auto& pair : peopleList) {
+        string name = pair.first;
+        people& person = pair.second;
 
-    //sort(sushiList.begin(), sushiList.end(), compareSushi);
-    //debugFile <<"count: "<< runcount <<" tick : " << tick << '\n';
 
-    for (int i = 0; i < backup.size(); ++i) {
-        if (peopleList.find(backup[i].name) == peopleList.end()) {
-            sushiList.push_back(backup[i]);
-            continue;
-        }
+        vector<sushi> backup(sushiList[name]);
+        vector<sushi> newList(0);
 
-        people& person = peopleList[backup[i].name];
-        int dis = getDistance(person, backup[i]);
+        for (int i = 0; i < backup.size(); ++i) {
+            int dis = getDistance(person, backup[i]);
 
-        //debugFile << backup[i].name << ' ' << dis << '\n';
+            //debugFile << backup[i].name << ' ' << dis << '\n';
 
-        if (backup[i].tick + dis > tick) {
-            sushiList.push_back(backup[i]);
-            continue;
-        }
+            if (backup[i].tick + dis > tick) {
+                newList.push_back(backup[i]);
+                continue;
+            }
 
-        --person.num;
+            --person.num;
 
-        if (person.num == 0) {
-            peopleList.erase(backup[i].name);
+            if (person.num == 0) {
+                peopleList.erase(name);
+            }
         }
     }
+
     //debugFile << '\n';
-    *output << peopleList.size() << ' ' << sushiList.size() <<'\n';
+    *output << peopleList.size() << ' ' << sushiCount <<'\n';
 }
 
 int main() {
     int q;
 
     //runcount = 0;
+    sushiCount = 0;
 
     if (inputFile.is_open()) {
         input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
