@@ -1,212 +1,204 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <unordered_map>
-#include <unordered_set>
+#include <vector>
 #include <algorithm>
-
+#include <climits>
 using namespace std;
 
-#define FOR(i,s,e) for(int i=s; i<e; ++i)
-#define Q_MAX 10
+// L개의 원형 칸이 있음.
+// L개의 의자가 있음.
+// 시각 t가 존재
 
-int L, Q;
-struct CMD {
-    int cmd, x, t, n;
-    string name;
+// 모든 동작은 회전이 일어난 직후에 발생
+
+// 초밥 제작
+// 시각 t에 벨트 위에 name을 부착한 초밥을 x에 올려놓음
+// 같은 위치에 여러 초밥 있을 수 있음.
+
+// 손님 입장
+// name 사람이 시각 t에 x에 앉음.
+// x 앞으로 오는 자신 이름의 초밥을 n개 먹고 떠남.
+// 명령이 주어진 때에 해당 위치에는 사람이 없음. (사람이 같은 위치에 겹칠 수 없음)
+// 시각 t에 x에 같은 name의 초밥이 있으면 그 자리에서 먹게 됨 (복수 개도 가능) (초밥 먹는 시간은 0)
+
+// 사진 촬영
+// t 시간에 오마카세 집 촬영
+// 이 동작은 회전 -> 식사 가 끝난 후 진행됨.
+// 사람 수와 초밥 수를 출력
+
+ifstream inputFile("./input.txt");
+istream* input = &cin;
+ofstream outputFile("./output.txt");
+ofstream debugFile("./debug.txt");
+ostream* output = &cout;
+
+int L;
+
+struct sushi {
+    int pos, tick;
 };
-vector<CMD> commands;
-unordered_map<string, int> sitting_position; // 손님이 앉은 자리 매핑
-unordered_set<string> visitting_customer_names; // 방문한 손님 목록 저장 ( 재방문은 없으므로 중복이 없다 )
-unordered_map<string, int> visit_customer_time; // 손님이 방문한 시간대
-unordered_map<string, int> eat_cnt; // 손님이 먹어야할 초밥 갯수 매핑
-vector<CMD> v;
-int sushi_cnt; // 남은 초밥 갯수
-int customer_cnt; // 남은 손님 명수
 
-void input() {
-    cin >> L >> Q;
-    FOR(i, 0, Q) {
-        int cmd = -1, t = -1, x = -1, n = -1;
-        string name = "";
+struct people {
+    int pos, tick, num;
+};
 
-        cin >> cmd;
+//vector<sushi> sushiList;
+unordered_map <string, vector<sushi>> sushiList;
+unordered_map<string, people> peopleList;
 
-        if (cmd == 100) {
-            cin >> t >> x >> name;
-        }
-        else if (cmd == 200) {
-            cin >> t >> x >> name >> n;
+int sushiCount;
 
-            visitting_customer_names.insert(name);
-            sitting_position[name] = x; // 오는 손님은 모두 다르다 ( 재방문 x )
-            visit_customer_time[name] = t; // 손님이 방문한 시각
-            eat_cnt[name] = n;
-        }
-        else if (cmd == 300) cin >> t;
+// 초밥 리스트를 우선 순위 큐로 저장
+// 정렬 식 사람.tick > 초밥.tick >= 0 ? ((사람.tick - 초밥.tick) + 초밥.pos) % L : 초밥.pos = 초밥 위치
+// 위치 계산 (y-x) >= 0 ? y-x : L - abs(y-x)
+// x = 초밥 위치, y = 사람 위치
+// 사람이 초밥을 먹는 시간은 사람.tick + 사람, 초밥 거리
 
-        CMD tmp;
-        tmp.cmd = cmd;
-        tmp.t = t;
-        tmp.x = x;
-        tmp.name = name;
-        tmp.n = n;
-        commands.push_back(tmp);
-    }
+// 사람, 초밥을 마구잡이로 입력 받고
+// 출력 때, 정렬해서 사람 먹이고 한번에 내보내기
+// 먹는데 걸리는 시간보다 출력하는 tick이 작은 경우 패스
+
+void addSushi() {
+    sushi newSushi;
+    string name;
+    *input >> newSushi.tick >> newSushi.pos >> name;
+
+    ++sushiCount;
+
+    sushiList[name].push_back(newSushi);
 }
 
-bool mcmp(CMD left, CMD right) {
-    if (left.t > right.t) return false;
-    if (left.t < right.t) return true;
+void addPerson() {
+    people newPeople;
+    string name;
 
-    if (left.cmd > right.cmd) return false;
-    if (left.cmd < right.cmd) return true;
+    *input >> newPeople.tick >> newPeople.pos >> name >> newPeople.num;
 
-    return false;
+    peopleList[name] = newPeople;
 }
 
-void sol() {
-    FOR(i,0, commands.size()) {// 생성된 초밥이 언제 없어질지 기록
-        if (commands[i].cmd != 100) continue; // 초밥이 생성된 시점이 아니라면 pass
-            
-        CMD sushis = commands[i];
-        // 해당 손님(commads[i].name)이 먹어야할 초밥
-        /*
-            시간 초과 관리를 위해 초밥생성 관련 명령 분리
+inline int getDistance(int sushiPos, int personPos) {
+    if (personPos >= sushiPos) {
+        return personPos - sushiPos;
+    }
+    return L - (sushiPos - personPos);
+}
 
-            최대 명령 수 : 100,000
-            회대 사람 수 : 15,000
-        */
-
-        int meet_sushi_cutomer_time = 0; // 초밥과 손님이 만나게 할 수 있는 보정 시간
-        int eat_sushi_time = 0; //초밥을 먹는 시간
-
-        if (sushis.t < visit_customer_time[sushis.name]) { 
-            /*
-                손님 입장전에 손님의 초밥이 벨트위에 있음
-            */
-
-            // 현재 초밥의 위치
-            int now_sushi_position = sushis.x;
-
-            // 손님이 방문한 시점과 먹어야할 초밥이 들어온 시점의 차이
-            int diff_t = visit_customer_time[sushis.name] - sushis.t;
-
-
-            // 손님이 입장했을때, 회전 초밥 위치 이동
-            // 
-            // 손님이 입장하기 전에 먹어야할 초밥이 들어와있으므로
-            // 손님이 들어올 시점에 초밥이 어디로 이동할지 구해줌
-            now_sushi_position = ((now_sushi_position + diff_t) % L);
-
-            if (sitting_position[sushis.name] >= now_sushi_position) {
-                /*
-                    손님이 초밥보다 시계방향으로 더 먼쪽에 앉아 있음
-                */
-
-                // 손님이 초밥을 먹기위해 걸리는 시간 = 손님이 앉은 자리 위치 - 현재 초밥 위치
-                meet_sushi_cutomer_time = sitting_position[sushis.name] - now_sushi_position;
-            }
-            else if (sitting_position[sushis.name] < now_sushi_position) {
-                /*
-                    손님이 초밥보다 반시계방향으로 더 먼쪽에 앉아 있음
-                */
-
-                // 손님이 초밥을 먹기위해 걸리는 시간 = (손님이 앉은 자리 위치 + 의자의 갯수(1싸이클)) - 현재 초밥 위치
-                meet_sushi_cutomer_time = (sitting_position[sushis.name] + L) - now_sushi_position;
-            }
-
-            // 손님을 초밥을 먹을 수 있는 시간 = 손님이 방문한 시간대 + 손님이 초밥을 먹기위해 걸리는 시간
-            eat_sushi_time = visit_customer_time[sushis.name] + meet_sushi_cutomer_time;
-        }
-        else { 
-            /*
-                손님 입장 후 초밥이 벨트위로 올라옴
-            */
-
-            // 현재 초밥의 위치
-            int now_sushi_position = sushis.x;
-
-            if (sitting_position[sushis.name] >= now_sushi_position) {
-                /*
-                    손님이 초밥보다 시계방향으로 더 먼쪽에 앉아 있음
-                */
-
-                // 손님이 초밥을 먹기위해 걸리는 시간 = 손님이 앉은 자리 위치 - 현재 초밥 위치
-                meet_sushi_cutomer_time = sitting_position[sushis.name] - now_sushi_position;
-            }
-            else if (sitting_position[sushis.name] < now_sushi_position) {
-                /*
-                    손님이 초밥보다 반시계방향으로 더 먼쪽에 앉아 있음
-                */
-
-                // 손님이 초밥을 먹기위해 걸리는 시간 = (손님이 앉은 자리 위치 + 의자의 갯수(1싸이클)) - 현재 초밥 위치
-                meet_sushi_cutomer_time = (sitting_position[sushis.name] + L) - now_sushi_position;
-            }
-
-            // 손님을 초밥을 먹을 수 있는 시간 = 초밥이 들어온 시간 + 손님이 초밥을 먹기위해 걸리는 시간
-            eat_sushi_time = sushis.t + meet_sushi_cutomer_time;
-        }
-
-        // 초밥이 사라지는 시점을 저장
-        CMD tmp;
-        tmp.cmd = sushis.cmd + 1;
-        tmp.t = eat_sushi_time;
-        tmp.x = -1;
-        tmp.name = sushis.name;
-        tmp.n = -1;
-        v.push_back(tmp);
+inline int getDistance(people person, sushi su) {
+    int sushiPos, offset = 0;
+    if (person.tick - su.tick >= 0) {
+        sushiPos = ((person.tick - su.tick) + su.pos) %  L;
+        offset = person.tick - su.tick;
+    }
+    else {
+        sushiPos = su.pos;
     }
 
-    // 전체 명령과 초밥이 사라지는 시점에 대한 정보를 합침
-    commands.insert(commands.end(), v.begin(), v.end());
+    int ret = getDistance(sushiPos, person.pos) + offset;
+    return ret;
 
-    // t가 작을 수록, 명령이 작을수록 우선순위를 부여해 정렬함
-    // 명령 우선순위 (100 -> 101 -> 200 -> 300)
-    sort(commands.begin(), commands.end(), mcmp);
+    //return getDistance(sushiPos, person.pos) + offset;
+}
 
-    FOR(i, 0, commands.size()) {
-        /*
-            전체 명령과 초밥이 사라지는 시점에 대한 정보를 합친것을 바탕으로
-            cmd에 따른 작업을 수행
-        */
+int runcount;
 
-        if (commands[i].cmd == 100) {
-            /*
-                초밥이 생성됨
-            */
-            ++sushi_cnt;
-        }
-        else if (commands[i].cmd == 101) {
-            /*
-                초밥이 사라짐
-            */
-            --sushi_cnt;
+void printResult() {
+    ++runcount;
+    int tick;
 
-            // 초밥이 사라졌으므로 손님을 먹을 초밥 갯수를 줄임
-            string now_name = commands[i].name;
-            eat_cnt[now_name] = eat_cnt[now_name] - 1;
-            if (eat_cnt[now_name] <= 0) --customer_cnt; // 손님이 먹을 초밥의 갯수가 0이하가 되었다면 방문한 손님 수는 줄어듬
+    *input >> tick;
+    
+    unordered_map<string, people> newPeople;
+    //debugFile << "count: " << runcount << " tick: " << tick << '\n';
+    //debugFile << "before sushicount : " << sushiCount << '\n';
+
+    debugFile << "people: " << peopleList.size() << '\n';
+    for (auto it = peopleList.begin(); it != peopleList.end(); ++it) {
+        string name = it->first;
+        people person = it->second;
+
+        if (sushiList.find(name) == sushiList.end() || sushiList[name].empty()) {
+            continue;
         }
-        else if (commands[i].cmd == 200) {
-            /*
-                손님이 방문함
-            */
-            ++customer_cnt;
+
+        vector<sushi> backup(sushiList[name]);
+        vector<sushi> newList(0);
+        int i = 0;
+
+        //debugFile << "user: " << person.tick << '\n';
+        int size = backup.size();
+        debugFile << "name : "<<name<<" size: " << backup.size() << '\n';
+
+        for (; i < backup.size(); ++i) {
+            int dis = getDistance(person, backup[i]);
+
+             debugFile << name << ' '<< backup[i].pos <<' ' << backup[i].tick << ' ' << dis << '\n';
+
+            if (backup[i].tick + dis > tick) {
+                newList.push_back(backup[i]);
+                continue;
+            }
+            --sushiCount;
+            --person.num;
+
+            // 여기서 사람의 초밥이 다 먹었을 경우 삭제
+            if (person.num == 0) {
+                //++i;
+                break;
+            }
         }
-        else if (commands[i].cmd == 300) {
-            /*
-                촬영
-            */
-            cout << customer_cnt << " " << sushi_cnt << '\n';
+
+        if (person.num != 0) {
+            newPeople[name] = person;
         }
+
+        //newList.insert(newList.end(), backup.begin() + i, backup.end());
+        
+
+        sushiList[name] = newList;
     }
+
+    peopleList = newPeople;
+    //debugFile << "after sushicount : " << sushiCount << '\n';
+    debugFile << '\n';
+    *output << peopleList.size() << ' ' << sushiCount <<'\n';
 }
 
 int main() {
-    // 여기에 코드를 작성해주세요.
-    freopen("input.txt", "r", stdin);
-    input();
-    sol();
+    int q;
 
+    runcount = 0;
+    sushiCount = 0;
+
+    if (inputFile.is_open()) {
+        input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
+    }
+
+    if (outputFile.is_open()) {
+        output = &outputFile;  // 파일을 열었다면 출력도 파일로
+    }
+
+    *input >> L >> q;
+
+    for (int i = 0; i < q; ++i) {
+        int code;
+        *input >> code;
+        switch (code) {
+        case 100:
+            //cout << "100\n";
+            addSushi();
+            break;
+        case 200:
+            //cout << "200\n";
+            addPerson();
+            break;
+        case 300:
+            //cout << "300\n";
+            printResult();
+            break;
+        }
+    }
     return 0;
 }
