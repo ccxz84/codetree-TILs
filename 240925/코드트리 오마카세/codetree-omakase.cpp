@@ -237,7 +237,7 @@ using namespace std;
 ifstream inputFile("./input.txt");
 istream* input = &cin;
 ofstream outputFile("./output.txt");
-ofstream debugFile("./debug.txt");
+// ofstream debugFile("./debug.txt");
 ostream* output = &cout;
 
 int L;
@@ -308,26 +308,26 @@ inline int getDistance(people person, sushi su) {
     //return getDistance(sushiPos, person.pos) + offset;
 }
 
-int runcount;
+// int runcount;
 
 void printResult() {
-    ++runcount;
+    // ++runcount;
     int tick;
 
     *input >> tick;
 
     unordered_map<string, people> newPeople;
-    debugFile << "count: " << runcount << " tick: " << tick << '\n';
-    debugFile << "before sushicount : " << sushiCount << '\n';
+    // debugFile << "count: " << runcount << " tick: " << tick << '\n';
+    // debugFile << "before sushicount : " << sushiCount << '\n';
 
     for (auto it = peopleList.begin(); it != peopleList.end(); ++it) {
         string name = it->first;
         people person = it->second;
 
-        debugFile << "user: " << name << '\n';
+        // debugFile << "user: " << name << '\n';
 
         if (sushiList.find(name) == sushiList.end() || sushiList[name].empty()) {
-            debugFile << "user skip\n";
+            // debugFile << "user skip\n";
             newPeople[name] = person;
             continue;
         }
@@ -341,7 +341,7 @@ void printResult() {
         for (; i < backup.size(); ++i) {
             int dis = getDistance(person, backup[i]);
 
-            debugFile << backup[i].pos << ' ' << backup[i].tick << ' ' << dis << '\n';
+            // debugFile << backup[i].pos << ' ' << backup[i].tick << ' ' << dis << '\n';
 
             if (backup[i].tick + dis > tick) {
                 newList.push_back(backup[i]);
@@ -368,15 +368,15 @@ void printResult() {
     }
 
     peopleList = newPeople;
-    debugFile << "after sushicount : " << sushiCount << '\n';
-    debugFile << '\n';
+    // debugFile << "after sushicount : " << sushiCount << '\n';
+    // debugFile << '\n';
     *output << peopleList.size() << ' ' << sushiCount << '\n';
 }
 
 int main() {
     int q;
 
-    runcount = 0;
+    // runcount = 0;
     sushiCount = 0;
 
     if (inputFile.is_open()) {
