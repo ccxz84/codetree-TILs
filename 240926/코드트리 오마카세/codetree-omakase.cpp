@@ -285,10 +285,16 @@ void insertSorted(list<query>& queries, const query& newQuery) {
     // 적절한 위치를 찾기 위해 뒤에서부터 탐색 (tick 오름차순)
     while (it != queries.begin() && (--it)->tick > newQuery.tick) {
         // 뒤에서 앞으로 탐색하면서 tick이 더 큰 값이 있으면 계속 탐색
+        
     }
 
     // 적절한 위치에 삽입
-    queries.insert(++it, newQuery);   // 현재 위치의 바로 뒤에 삽입
+    if (it == queries.begin() && newQuery.tick < it->tick) {
+        queries.insert(it, newQuery);  // 맨 앞에 삽입
+    }
+    else {
+        queries.insert(++it, newQuery);  // 적절한 위치에 삽입
+    }
 }
 
 
@@ -374,8 +380,11 @@ void addPerson() {
 
 int personCount, sushiCount;
 
+int runcount;
+
 void printResult() {
     int tick;
+    ++runcount;
 
     *input >> tick;
 
@@ -406,6 +415,7 @@ void printResult() {
 
 int main() {
     int q;
+    runcount = 0;
     personCount = 0;
     sushiCount = 0;
 
