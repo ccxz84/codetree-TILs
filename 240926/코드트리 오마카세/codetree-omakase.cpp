@@ -253,7 +253,7 @@ struct sushi {
 };
 
 struct people {
-    int pos, tick, num;
+    int pos, tick, num, outtick = 0;
 };
 
 struct query {
@@ -340,9 +340,10 @@ void addSushi() {
         insertSorted(queries, { dis + newSushi.tick, OUT_SUSHI });
 
         --person.num;
+        person.outtick = max(dis + newSushi.tick, person.outtick);
 
         if (person.num <= 0) {
-            insertSorted(queries, { dis + newSushi.tick, OUT_PERSON });
+            insertSorted(queries, { person.outtick, OUT_PERSON });
         }
     }
     else {
@@ -356,7 +357,6 @@ void addPerson() {
 
     *input >> newPeople.tick >> newPeople.pos >> name >> newPeople.num;
     insertSorted(queries, { newPeople.tick, IN_PERSON });
-    int max = 0;
 
     for (auto& su : sushiList[name]) {
         int dis = getDistance(newPeople, su);
@@ -365,17 +365,13 @@ void addPerson() {
 
         insertSorted(queries, { dis + su.tick, OUT_SUSHI });
 
-        if (max < dis + su.tick) {
-            max = dis + su.tick;
-        }
+        newPeople.outtick = max(dis + su.tick, newPeople.outtick);
     }
 
     if (newPeople.num <= 0) {
-        insertSorted(queries, { max, OUT_PERSON });
+        insertSorted(queries, { newPeople.outtick, OUT_PERSON });
     }
-    else {
-        peopleList[name] = newPeople;
-    }
+    peopleList[name] = newPeople;
 }
 
 int personCount, sushiCount;
@@ -388,7 +384,7 @@ void printResult() {
 
     *input >> tick;
 
-    auto it = queries.begin();
+      auto it = queries.begin();
     auto start = it;
     while (it != queries.end() && it->tick <= tick) {
         switch (it->code) {
