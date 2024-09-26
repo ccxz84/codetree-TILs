@@ -212,6 +212,8 @@
 #include <list>
 #include <algorithm>
 #include <climits>
+#include <queue>
+#include <functional>
 using namespace std;
 
 // L개의 원형 칸이 있음.
@@ -260,9 +262,14 @@ struct query {
     int tick, code;
 };
 
-list<query> queries;
+bool compare(query a, query b) {
+    return a.tick > b.tick;
+}
+
+//list<query> queries;
 unordered_map <string, vector<sushi>> sushiList;
 unordered_map<string, people> peopleList;
+priority_queue<query, vector<query>, function<bool(query, query)>> queries(compare);
 
 // 초밥 리스트를 우선 순위 큐로 저장
 // 정렬 식 사람.tick > 초밥.tick >= 0 ? ((사람.tick - 초밥.tick) + 초밥.pos) % L : 초밥.pos = 초밥 위치
@@ -274,28 +281,28 @@ unordered_map<string, people> peopleList;
 // 출력 때, 정렬해서 사람 먹이고 한번에 내보내기
 // 먹는데 걸리는 시간보다 출력하는 tick이 작은 경우 패스
 
-void insertSorted(list<query>& queries, const query& newQuery) {
-    if (queries.empty()) {
-        queries.push_back(newQuery);
-        return;
-    }
-
-    auto it = queries.end();
-
-    // 적절한 위치를 찾기 위해 뒤에서부터 탐색 (tick 오름차순)
-    while (it != queries.begin() && (--it)->tick > newQuery.tick) {
-        // 뒤에서 앞으로 탐색하면서 tick이 더 큰 값이 있으면 계속 탐색
-        
-    }
-
-    // 적절한 위치에 삽입
-    if (it == queries.begin() && newQuery.tick < it->tick) {
-        queries.insert(it, newQuery);  // 맨 앞에 삽입
-    }
-    else {
-        queries.insert(++it, newQuery);  // 적절한 위치에 삽입
-    }
-}
+//void insertSorted(list<query>& queries, const query& newQuery) {
+//    if (queries.empty()) {
+//        queries.push_back(newQuery);
+//        return;
+//    }
+//
+//    auto it = queries.end();
+//
+//    // 적절한 위치를 찾기 위해 뒤에서부터 탐색 (tick 오름차순)
+//    while (it != queries.begin() && (--it)->tick > newQuery.tick) {
+//        // 뒤에서 앞으로 탐색하면서 tick이 더 큰 값이 있으면 계속 탐색
+//        
+//    }
+//
+//    // 적절한 위치에 삽입
+//    if (it == queries.begin() && newQuery.tick < it->tick) {
+//        queries.insert(it, newQuery);  // 맨 앞에 삽입
+//    }
+//    else {
+//        queries.insert(++it, newQuery);  // 적절한 위치에 삽입
+//    }
+//}
 
 
 inline int getDistance(int sushiPos, int personPos) {
@@ -321,6 +328,8 @@ inline int getDistance(people person, sushi su) {
     //return getDistance(sushiPos, person.pos) + offset;
 }
 
+int personCount, sushiCount;
+
 
 void addSushi() {
     sushi newSushi;
@@ -329,21 +338,21 @@ void addSushi() {
 
     auto it = peopleList.find(name);
 
-    insertSorted(queries, {newSushi.tick, IN_SUSHI});
+    ++sushiCount;
 
-
-   
+    //queries.push({newSushi.tick, IN_SUSHI});
+       
     if (it != peopleList.end()) {
         auto& person = it->second;
         int dis = getDistance(person, newSushi);
 
-        insertSorted(queries, { dis + newSushi.tick, OUT_SUSHI });
+        queries.push({ dis + newSushi.tick, OUT_SUSHI });
 
         --person.num;
         person.outtick = max(dis + newSushi.tick, person.outtick);
 
         if (person.num <= 0) {
-            insertSorted(queries, { person.outtick, OUT_PERSON });
+            queries.push({ person.outtick, OUT_PERSON });
         }
     }
     else {
@@ -356,25 +365,26 @@ void addPerson() {
     string name;
 
     *input >> newPeople.tick >> newPeople.pos >> name >> newPeople.num;
-    insertSorted(queries, { newPeople.tick, IN_PERSON });
+    ++personCount;
+    //queries.push({ newPeople.tick, IN_PERSON });
 
     for (auto& su : sushiList[name]) {
         int dis = getDistance(newPeople, su);
 
         --newPeople.num;
 
-        insertSorted(queries, { dis + su.tick, OUT_SUSHI });
+        queries.push({ dis + su.tick, OUT_SUSHI });
 
         newPeople.outtick = max(dis + su.tick, newPeople.outtick);
     }
 
     if (newPeople.num <= 0) {
-        insertSorted(queries, { newPeople.outtick, OUT_PERSON });
+        queries.push({ newPeople.outtick, OUT_PERSON });
     }
     peopleList[name] = newPeople;
 }
 
-int personCount, sushiCount;
+
 
 int runcount;
 
@@ -384,27 +394,27 @@ void printResult() {
 
     *input >> tick;
 
-      auto it = queries.begin();
-    auto start = it;
-    while (it != queries.end() && it->tick <= tick) {
-        switch (it->code) {
-        case IN_SUSHI:
+    // 우선순위 큐에서 tick이 현재 시간보다 작거나 같은 쿼리들을 처리
+    while (!queries.empty() && queries.top().tick <= tick) {
+        query current = queries.top();
+        queries.pop(); // 처리 후 삭제
+
+        // 쿼리 코드에 따라 작업 수행
+        switch (current.code) {
+        /*case IN_SUSHI:
             ++sushiCount;
-            break;;
+            break;*/
         case OUT_SUSHI:
             --sushiCount;
             break;
-        case IN_PERSON:
+        /*case IN_PERSON:
             ++personCount;
-            break;
+            break;*/
         case OUT_PERSON:
             --personCount;
             break;
         }
-        ++it;
     }
-
-    queries.erase(start, it);
 
     *output << personCount << ' ' << sushiCount << '\n';
 }
