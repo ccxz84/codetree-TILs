@@ -266,10 +266,15 @@ bool compare(query a, query b) {
     return a.tick > b.tick;
 }
 
+bool vectorCompare(query a, query b) {
+    return a.tick < b.tick;
+}
+
 //list<query> queries;
 unordered_map <string, vector<sushi>> sushiList;
 unordered_map<string, people> peopleList;
-priority_queue<query, vector<query>, function<bool(query, query)>> queries(compare);
+//priority_queue<query, vector<query>, function<bool(query, query)>> queries(compare);
+vector<query> queries;
 
 // 초밥 리스트를 우선 순위 큐로 저장
 // 정렬 식 사람.tick > 초밥.tick >= 0 ? ((사람.tick - 초밥.tick) + 초밥.pos) % L : 초밥.pos = 초밥 위치
@@ -346,13 +351,13 @@ void addSushi() {
         auto& person = it->second;
         int dis = getDistance(person, newSushi);
 
-        queries.push({ dis + newSushi.tick, OUT_SUSHI });
+        queries.push_back({ dis + newSushi.tick, OUT_SUSHI });
 
         --person.num;
         person.outtick = max(dis + newSushi.tick, person.outtick);
 
         if (person.num <= 0) {
-            queries.push({ person.outtick, OUT_PERSON });
+            queries.push_back({ person.outtick, OUT_PERSON });
         }
     }
     else {
@@ -373,13 +378,13 @@ void addPerson() {
 
         --newPeople.num;
 
-        queries.push({ dis + su.tick, OUT_SUSHI });
+        queries.push_back({ dis + su.tick, OUT_SUSHI });
 
         newPeople.outtick = max(dis + su.tick, newPeople.outtick);
     }
 
     if (newPeople.num <= 0) {
-        queries.push({ newPeople.outtick, OUT_PERSON });
+        queries.push_back({ newPeople.outtick, OUT_PERSON });
     }
     peopleList[name] = newPeople;
 }
@@ -395,25 +400,51 @@ void printResult() {
     *input >> tick;
 
     // 우선순위 큐에서 tick이 현재 시간보다 작거나 같은 쿼리들을 처리
-    while (!queries.empty() && queries.top().tick <= tick) {
-        query current = queries.top();
-        queries.pop(); // 처리 후 삭제
+    //while (!queries.empty() && queries.top().tick <= tick) {
+    //    query current = queries.top();
+    //    queries.pop(); // 처리 후 삭제
+
+    //    // 쿼리 코드에 따라 작업 수행
+    //    switch (current.code) {
+    //    /*case IN_SUSHI:
+    //        ++sushiCount;
+    //        break;*/
+    //    case OUT_SUSHI:
+    //        --sushiCount;
+    //        break;
+    //    /*case IN_PERSON:
+    //        ++personCount;
+    //        break;*/
+    //    case OUT_PERSON:
+    //        --personCount;
+    //        break;
+    //    }
+    //}
+
+    sort(queries.begin(), queries.end(), vectorCompare);
+
+    auto it = queries.begin();
+    while (it != queries.end() && it->tick <= tick) {
+        query current = *it;
 
         // 쿼리 코드에 따라 작업 수행
         switch (current.code) {
-        /*case IN_SUSHI:
-            ++sushiCount;
-            break;*/
+            /*case IN_SUSHI:
+                ++sushiCount;
+                break;*/
         case OUT_SUSHI:
             --sushiCount;
             break;
-        /*case IN_PERSON:
-            ++personCount;
-            break;*/
+            /*case IN_PERSON:
+                ++personCount;
+                break;*/
         case OUT_PERSON:
             --personCount;
             break;
         }
+
+        // 처리된 쿼리를 벡터에서 삭제
+        it = queries.erase(it);
     }
 
     *output << personCount << ' ' << sushiCount << '\n';
