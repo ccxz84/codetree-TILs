@@ -159,33 +159,37 @@ void swapParent(int c1, int c2) {
 
     parents.push(tree[c1].pid);
 
+    unordered_map<int, unordered_set<int>> dataSet;
+
     while (!parents.empty()) {
         int pid = parents.front();
         parents.pop();
 
         if (pid == -1) break;
 
-        
-
         for (auto index : tree[c1].availableSet) {
             tree[pid].availableSet.erase(index);
         }
 
-        if (tree[c1].on) {
+        tree[pid].availableSet.erase(c1);
+
+        if (tree[c2].on) {
             for (auto index : tree[c2].availableSet) {
                 auto& child = tree[index];
                 if (child.depth - tree[pid].depth <= child.power) {
+                    dataSet[pid].insert(index);
                     tree[pid].availableSet.insert(index);
                 }
             }
             if (tree[c2].depth - tree[pid].depth <= tree[c2].power) {
+                dataSet[pid].insert(c2);
                 tree[pid].availableSet.insert(c2);
             }
         }
 
-        if (tree[pid].on) break;
+        if (!tree[pid].on) break;
 
-        parents.push(pid);
+        parents.push(tree[pid].pid);
     }
 
     parents.push(tree[c2].pid);
@@ -197,10 +201,16 @@ void swapParent(int c1, int c2) {
         if (pid == -1) break;
 
         for (auto index : tree[c2].availableSet) {
-            tree[pid].availableSet.erase(index);
+            if (dataSet[pid].count(index) <= 0) {
+                tree[pid].availableSet.erase(index);
+            }
         }
 
-        if (tree[c2].on) {
+        if (dataSet[pid].count(c2) <= 0) {
+            tree[pid].availableSet.erase(c2);
+        }
+
+        if (tree[c1].on) {
             for (auto index : tree[c1].availableSet) {
                 auto& child = tree[index];
                 if (child.depth - tree[pid].depth <= child.power) {
@@ -212,9 +222,9 @@ void swapParent(int c1, int c2) {
             }
         }       
 
-        if (tree[pid].on) break;
+        if (!tree[pid].on) break;
 
-        parents.push(pid);
+        parents.push(tree[pid].pid);
     }
 }
 
@@ -222,6 +232,8 @@ void swap() {
     int c1, c2;
 
     *input >> c1 >> c2;
+
+    swapParent(c1, c2);
 
     int c1Pid = tree[c1].pid;
     int c2Pid = tree[c2].pid;
