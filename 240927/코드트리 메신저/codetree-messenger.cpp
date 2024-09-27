@@ -154,50 +154,77 @@ void changePower() {
     changePowerParent(id);
 }
 
-void swapParent() {
+void swapParent(int c1, int c2) {
+    queue<int> parents;
+
+    parents.push(tree[c1].pid);
+
+    while (!parents.empty()) {
+        int pid = parents.front();
+        parents.pop();
+
+        if (pid == -1) break;
+
+        
+
+        for (auto index : tree[c1].availableSet) {
+            tree[pid].availableSet.erase(index);
+        }
+
+        if (tree[c1].on) {
+            for (auto index : tree[c2].availableSet) {
+                auto& child = tree[index];
+                if (child.depth - tree[pid].depth <= child.power) {
+                    tree[pid].availableSet.insert(index);
+                }
+            }
+            if (tree[c2].depth - tree[pid].depth <= tree[c2].power) {
+                tree[pid].availableSet.insert(c2);
+            }
+        }
+
+        if (tree[pid].on) break;
+
+        parents.push(pid);
+    }
+
+    parents.push(tree[c2].pid);
+
+    while (!parents.empty()) {
+        int pid = parents.front();
+        parents.pop();
+
+        if (pid == -1) break;
+
+        for (auto index : tree[c2].availableSet) {
+            tree[pid].availableSet.erase(index);
+        }
+
+        if (tree[c2].on) {
+            for (auto index : tree[c1].availableSet) {
+                auto& child = tree[index];
+                if (child.depth - tree[pid].depth <= child.power) {
+                    tree[pid].availableSet.insert(index);
+                }
+            }
+            if (tree[c1].depth - tree[pid].depth <= tree[c1].power) {
+                tree[pid].availableSet.insert(c1);
+            }
+        }       
+
+        if (tree[pid].on) break;
+
+        parents.push(pid);
+    }
+}
+
+void swap() {
     int c1, c2;
 
     *input >> c1 >> c2;
 
     int c1Pid = tree[c1].pid;
     int c2Pid = tree[c2].pid;
-
-    if (tree[c1].on) {
-        for (auto index : tree[c1].availableSet) {
-            auto& child = tree[index];
-
-            if (child.depth - tree[c2Pid].depth <= child.power) {
-                tree[c2Pid].availableSet.insert(index);
-            }
-
-            tree[c1Pid].availableSet.erase(index);
-        }
-
-        if (tree[c1].depth - tree[c2Pid].depth <= tree[c1].power) {
-            tree[c2Pid].availableSet.insert(c1);
-        }
-        tree[c1Pid].availableSet.erase(c1);
-    }
-
-    
-    if (tree[c2].on) {
-        for (auto index : tree[c2].availableSet) {
-            auto& child = tree[index];
-
-            if (child.depth - tree[c1Pid].depth <= child.power) {
-                tree[c1Pid].availableSet.insert(index);
-            }
-
-            tree[c2Pid].availableSet.erase(index);
-
-        }
-
-        if (tree[c2].depth - tree[c1Pid].depth <= tree[c2].power) {
-            tree[c1Pid].availableSet.insert(c2);
-        }
-
-        tree[c2Pid].availableSet.erase(c2);
-    }
     
     tree[c1Pid].cids.erase(c1);
     tree[c1Pid].cids.insert(c2);
@@ -253,7 +280,7 @@ int main() {
             changePower();
             break;
         case 400:
-            swapParent();
+            swap();
             break;
         case 500:
             printChatroom();
