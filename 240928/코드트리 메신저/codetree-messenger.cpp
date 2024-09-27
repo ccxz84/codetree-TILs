@@ -123,6 +123,8 @@ void toggleSwitch() {
 void changePowerParent(int id) {
     queue<int> parents;
 
+    if (!tree[id].on) return;
+
     parents.push(tree[id].pid);
 
     while (!parents.empty()) {
@@ -131,7 +133,7 @@ void changePowerParent(int id) {
 
         if (pid == -1) break;
 
-        if (tree[id].on && tree[id].depth - tree[pid].depth <= tree[id].power) {
+        if (tree[id].depth - tree[pid].depth <= tree[id].power) {
             tree[pid].availableSet.insert(id);
         }
         else {
