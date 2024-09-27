@@ -133,6 +133,8 @@ void changePowerParent(int id) {
 
         if (pid == -1) break;
 
+        if (!tree[pid].on) break;
+
         if (tree[id].depth - tree[pid].depth <= tree[id].power) {
             tree[pid].availableSet.insert(id);
         }
@@ -140,7 +142,7 @@ void changePowerParent(int id) {
             tree[pid].availableSet.erase(id);
         }
 
-        if (!tree[pid].on) break;
+        
 
         parents.push(tree[pid].pid);
     }
