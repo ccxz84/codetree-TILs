@@ -253,13 +253,10 @@ void swap() {
     tree[c2].pid = c1Pid;
     tree[c1].pid = c2Pid;
 
-
 }
 
 void printChatroom() {
     int id;
-
-    ++runcount;
 
     *input >> id;
 
@@ -268,7 +265,6 @@ void printChatroom() {
 
 int main() {
     int q;
-    runcount = 0;
 
     if (inputFile.is_open()) {
         input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
@@ -282,11 +278,8 @@ int main() {
     tree = vector<node>(n+1);
     tree[0] = { -1, 0, true };
 
-    int prevSize = 0;
-
     for (int i = 0; i < q; ++i) {
         int code;
-        int dummy;
         *input >> code;
         switch (code) {
         case 100:
@@ -307,10 +300,6 @@ int main() {
         case 500:
             printChatroom();
             break;
-        }
-        if (tree[300].availableSet.size() != prevSize) {
-            dummy = tree[300].availableSet.size();
-            prevSize = tree[300].availableSet.size();  // 이전 값을 업데이트
         }
     }
     
