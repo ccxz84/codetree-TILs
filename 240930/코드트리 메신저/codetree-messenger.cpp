@@ -43,30 +43,30 @@ struct node {
 
 vector<node> tree;
 
-unordered_set<int> dfs(int id, int depth) {
-    tree[id].depth = depth;
-    auto& cur = tree[id];
-    unordered_set<int> cids;
-
-    for (auto child : cur.cids) {
-        unordered_set<int> childs = dfs(child, depth + 1);
-
-        for (auto index : childs) {
-            cids.insert(index);
-        }
-    }
-
-    for (auto index : cids) {
-        auto& child = tree[index];
-        if (child.depth - cur.depth <= child.power) {
-            ++cur.availableSet[child.power - (child.depth - cur.depth)];
-            //cur.availableSet.insert(index);
-        }
-    }
-    cids.insert(id);
-
-    return cids;
-}
+//unordered_set<int> dfs(int id, int depth) {
+//    tree[id].depth = depth;
+//    auto& cur = tree[id];
+//    unordered_set<int> cids;
+//
+//    for (auto child : cur.cids) {
+//        unordered_set<int> childs = dfs(child, depth + 1);
+//
+//        for (auto index : childs) {
+//            cids.insert(index);
+//        }
+//    }
+//
+//    for (auto index : cids) {
+//        auto& child = tree[index];
+//        if (child.depth - cur.depth <= child.power) {
+//            ++cur.availableSet[child.power - (child.depth - cur.depth)];
+//            //cur.availableSet.insert(index);
+//        }
+//    }
+//    cids.insert(id);
+//
+//    return cids;
+//}
 
 void initMessanger() {
     for (int i = 0; i < n; ++i) {
@@ -76,90 +76,53 @@ void initMessanger() {
 
     for (int i = 0; i < n; ++i) {
         *input >> tree[i + 1].power;
+        if (tree[i + 1].power > 20) tree[i + 1].power = 20;
     }
-       dfs(0, 0);
+       /*dfs(0, 0);*/
+
+    for (int i = 1; i <= n; i++) {
+        int cur = i;
+        int x = tree[i].power;
+
+        while (x) {
+            cur = tree[cur].pid;
+            if (cur == -1) break;
+            x--;
+            if (x >= 0) tree[cur].availableSet[x]++;
+        }
+    }
 }
 
-//void toggleParent(int id, bool vaule) {
-//    queue<int> parents;
-//
-//    parents.push(tree[id].pid);
-//
-//    while (!parents.empty()) {
-//        int pid = parents.front();
-//        parents.pop();
-//
-//        if (pid == -1) break;
-//
-//        if (!tree[id].on) {
-//            for (auto index : tree[id].availableSet) {
-//                tree[pid].availableSet.erase(index);
-//            }
-//            tree[pid].availableSet.erase(id);
-//        }
-//        else if(tree[id].on) {
-//            for (auto index : tree[id].availableSet) {
-//                auto& child = tree[index];
-//                if (child.depth - tree[pid].depth <= child.power) {
-//                    tree[pid].availableSet.insert(index);
-//                }
-//            }
-//            if (tree[id].depth - tree[pid].depth <= tree[id].power) {
-//                tree[pid].availableSet.insert(id);
-//            }
-//        }
-//
-//        if (!tree[pid].on) break;
-//
-//        parents.push(tree[pid].pid);
-//    }
-//}
+void adjustAvailableSet(int id, int delta) {
+    int num = 1;
+    int cur = tree[id].pid;
+
+    while (cur != -1) {
+        for (auto val : tree[id].availableSet) {
+            int remain = val.first;
+            int count = val.second;
+            int adjusted_remain = remain - num;
+            if (adjusted_remain >= 0) {
+                tree[cur].availableSet[adjusted_remain] += delta * count;
+            }
+        }
+        int adjusted_power = tree[id].power - num;
+        if (adjusted_power >= 0) {
+            tree[cur].availableSet[adjusted_power] += delta * 1;
+        }
+        if (!tree[cur].on) break;
+        cur = tree[cur].pid;
+        num++;
+    }
+}
 
 void toggleParent(int id) {
-    queue<int> parents;
     bool value = !tree[id].on;
+    int delta = value ? 1 : -1;
 
-    parents.push(tree[id].pid);
+    adjustAvailableSet(id, delta);
 
-    while (!parents.empty()) {
-        int pid = parents.front();
-        parents.pop();
-
-        if (pid == -1) break;
-
-        if (tree[id].on) {
-            for (auto val : tree[id].availableSet) {
-                int remain = val.first;
-                int count = val.second;
-
-                if (tree[id].depth - tree[pid].depth <= remain) {
-                    tree[pid].availableSet[remain - (tree[id].depth - tree[pid].depth)] -= count;
-                }
-            }
-            if (tree[id].depth - tree[pid].depth <= tree[id].power) {
-                --tree[pid].availableSet[tree[id].power - (tree[id].depth - tree[pid].depth)];
-            }
-        }
-        else {
-            for (auto val : tree[id].availableSet) {
-                int remain = val.first;
-                int count = val.second;
-
-                if (tree[id].depth - tree[pid].depth <= remain) {
-                    tree[pid].availableSet[remain - (tree[id].depth - tree[pid].depth)] += count;
-                }
-            }
-            if (tree[id].depth - tree[pid].depth <= tree[id].power) {
-                ++tree[pid].availableSet[tree[id].power - (tree[id].depth - tree[pid].depth)];
-            }
-        }
-
-        if (!tree[pid].on) break;
-
-        parents.push(tree[pid].pid);
-    }
-
-    tree[id].on = !tree[id].on;
+    tree[id].on = value;
 }
 
 void toggleSwitch() {
@@ -171,34 +134,58 @@ void toggleSwitch() {
 }
 
 void changePowerParent(int id, int power) {
-    queue<int> parents;
     int befPower = tree[id].power;
 
-    if (!tree[id].on) return;
-
-    parents.push(tree[id].pid);
-
-    while (!parents.empty()) {
-        int pid = parents.front();
-        parents.pop();
-
-        if (pid == -1) break;
-
-        if (tree[id].depth - tree[pid].depth <= power) {
-           ++tree[pid].availableSet[power - (tree[id].depth - tree[pid].depth)];
-        }
-        
-        if (tree[id].depth - tree[pid].depth <= befPower) {
-            --tree[pid].availableSet[befPower - (tree[id].depth - tree[pid].depth)];
-        }
-
-        if (!tree[pid].on) break;
-
-        parents.push(tree[pid].pid);
+    if (!tree[id].on) {
+        tree[id].power = power;
+        return;
     }
 
+    // 이전 권한 값의 영향 제거
+    //tree[id].availableSet[befPower]--;
+    adjustAvailableSet(id, -1);
+
+    // 권한 값 업데이트
     tree[id].power = power;
+    //tree[id].availableSet[power]++;
+
+    // 새로운 권한 값의 영향 추가
+    adjustAvailableSet(id, 1);
 }
+
+
+//void changePowerParent(int id, int power) {
+//    queue<int> parents;
+//    int befPower = tree[id].power;
+//
+//    if (!tree[id].on) return;
+//
+//    int num = 1;
+//
+//    parents.push(tree[id].pid);
+//
+//    while (!parents.empty()) {
+//        int pid = parents.front();
+//        parents.pop();
+//
+//        if (pid == -1) break;
+//
+//        if (num <= befPower) {
+//            --tree[pid].availableSet[befPower - num];
+//        }
+//
+//        if (num <= power) {
+//           ++tree[pid].availableSet[power - num];
+//        }
+//
+//        if (!tree[pid].on) break;
+//
+//        parents.push(tree[pid].pid);
+//        ++num;
+//    }
+//
+//    tree[id].power = power;
+//}
 
 void changePower() {
     int id, power;
@@ -207,102 +194,6 @@ void changePower() {
 
     changePowerParent(id, power);
 }
-
-//void swapParent(int c1, int c2) {
-//    queue<int> parents;
-//
-//    parents.push(tree[c1].pid);
-//
-//    unordered_set<int> dataSet;
-//
-//    while (!parents.empty()) {
-//        int pid = parents.front();
-//        parents.pop();
-//
-//        if (pid == -1) break;
-//
-//        dataSet.insert(pid);
-//
-//        for (auto index : tree[c1].availableSet) {
-//            tree[pid].availableSet.erase(index);
-//        }
-//
-//        tree[pid].availableSet.erase(c1);
-//
-//        if (tree[c2].on) {
-//            for (auto index : tree[c2].availableSet) {
-//                auto& child = tree[index];
-//                if (child.depth - tree[pid].depth <= child.power) {
-//                    tree[pid].availableSet.insert(index);
-//                }
-//            }
-//            if (tree[c2].depth - tree[pid].depth <= tree[c2].power) {
-//                tree[pid].availableSet.insert(c2);
-//            }
-//        }
-//
-//        if (!tree[pid].on) break;
-//
-//        parents.push(tree[pid].pid);
-//    }
-//
-//    parents.push(tree[c2].pid);
-//
-//    while (!parents.empty()) {
-//        int pid = parents.front();
-//        parents.pop();
-//
-//        if (pid == -1) break;
-//
-//        if (dataSet.count(pid) <= 0) {
-//            for (auto index : tree[c2].availableSet) {
-//                tree[pid].availableSet.erase(index);
-//            }
-//
-//            tree[pid].availableSet.erase(c2);
-//        }
-//
-//        if (tree[c1].on) {
-//            for (auto index : tree[c1].availableSet) {
-//                auto& child = tree[index];
-//                if (child.depth - tree[pid].depth <= child.power) {
-//                    tree[pid].availableSet.insert(index);
-//                }
-//            }
-//            if (tree[c1].depth - tree[pid].depth <= tree[c1].power) {
-//                tree[pid].availableSet.insert(c1);
-//            }
-//        }       
-//
-//        if (!tree[pid].on) break;
-//
-//        parents.push(tree[pid].pid);
-//    }
-//}
-
-//void swap() {
-//    int c1, c2;
-//
-//    *input >> c1 >> c2;
-//
-//    swapParent(c1, c2);
-//
-//    int c1Pid = tree[c1].pid;
-//    int c2Pid = tree[c2].pid;
-//
-//    tree[c1Pid].cids.erase(c1);
-//    tree[c1Pid].cids.insert(c2);
-//
-//
-//    tree[c2Pid].cids.erase(c2);
-//    tree[c2Pid].cids.insert(c1);
-//
-//    tree[c2].pid = c1Pid;
-//    tree[c1].pid = c2Pid;
-//
-//}
-
-int runcount;
 
 void swap() {
     int c1, c2;
@@ -330,6 +221,15 @@ void printChatroom() {
     }
 
     *output << count << '\n';
+}
+
+int getCount(int id) {
+    int count = 0;
+    for (auto val : tree[id].availableSet) {
+        count += val.second;
+    }
+
+    return count;
 }
 
 int main() {
