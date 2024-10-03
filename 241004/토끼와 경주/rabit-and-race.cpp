@@ -46,7 +46,7 @@ int ans;
 
 priority_queue<Rabbit> pq;
 
-int allScore = 0;
+long long allScore = 0;
 unordered_map<int, int> minusScore;
 unordered_map<int, int> rabbitDistance;
 int minMInusScore = 0; 
