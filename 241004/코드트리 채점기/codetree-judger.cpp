@@ -125,7 +125,7 @@ void requestJudge() {
         domainToIdx[dom.first] = idx;
     }
 
-    if (waitingProblemSet[idx].count(dom.second) > 0) {
+    if (waitingProblemSet[idx].find(dom.second) != waitingProblemSet[idx].end()) {
         return;
     }
 
@@ -214,7 +214,6 @@ void printWaiting() {
 
 int main() {
     int q;
-    ans = 0; domIndex = 1;
     if (inputFile.is_open()) {
         input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
     }
