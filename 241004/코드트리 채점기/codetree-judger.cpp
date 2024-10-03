@@ -54,7 +54,6 @@ bool compare(problem a, problem b) {
 
 using PriorityQueue = priority_queue<problem, vector<problem>, decltype(&compare)>;
 
-string idxToDomain[MAX_D + 1] = { "" };
 map<string, int> domainToIdx;
 
 vector<PriorityQueue> waitingProblem = vector<PriorityQueue>(MAX_D + 1, PriorityQueue(compare));
@@ -96,7 +95,6 @@ void initJudge() {
     if (idx == 0) {
         ++domIndex;
         idx = domIndex;
-        idxToDomain[idx] = dom.first;
         domainToIdx[dom.first] = idx;
     }
 
@@ -124,7 +122,6 @@ void requestJudge() {
     if (idx == 0) {
         ++domIndex;
         idx = domIndex;
-        idxToDomain[idx] = dom.first;
         domainToIdx[dom.first] = idx;
     }
 
