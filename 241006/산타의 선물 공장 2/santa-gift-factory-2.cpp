@@ -199,6 +199,8 @@ void moveHalfPresent() {
         // dst가 비어 있는 경우
         bDst.head = bSrc.head;  // src의 절반을 dst로 이동
         bDst.tail = current;    // 이동한 부분의 tail은 current
+
+        current->next = nullptr;
     }
     else {
         // dst에 원소가 있는 경우, src의 절반을 dst의 앞에 연결
