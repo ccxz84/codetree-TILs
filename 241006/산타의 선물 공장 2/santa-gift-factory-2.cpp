@@ -160,6 +160,14 @@ void moveFrontPresent() {
         if (firstDst->next) firstDst->next->prev = firstSrc;
 
         swap(firstSrc->next, firstDst->next);
+
+        if (bDst.count == 1) {
+            bDst.tail = bDst.head;
+        }
+
+        if (bSrc.count == 1) {
+            bSrc.tail = bSrc.head;
+        }
     }
 
     *output << bDst.count << '\n';
