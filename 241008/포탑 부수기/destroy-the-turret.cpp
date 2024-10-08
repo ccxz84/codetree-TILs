@@ -165,16 +165,17 @@ bool BFS() {
         while (!path.empty()) {
             pair<int, int> step = path.top();
             path.pop();
-
-            if (step.first == target.x && step.second == target.y) {
-                matrix[step.first][step.second].lastAttack = true;
-                matrix[step.first][step.second].attack -= attacker.attack;
-                //matrix[step.first][step.second].attack = (matrix[step.first][step.second].attack - attacker.attack) < 0 ? 0 : (matrix[step.first][step.second].attack - attacker.attack);
-            }
-            else {
-                matrix[step.first][step.second].lastAttack = true;
-                matrix[step.first][step.second].attack -= attacker.attack / 2;
-                //matrix[step.first][step.second].attack = (matrix[step.first][step.second].attack - attacker.attack / 2) < 0 ? 0 : (matrix[step.first][step.second].attack - attacker.attack / 2);
+            if (!(attacker.x == step.first && attacker.y == step.second)) {
+                if (step.first == target.x && step.second == target.y) {
+                    matrix[step.first][step.second].lastAttack = true;
+                    matrix[step.first][step.second].attack -= attacker.attack;
+                    //matrix[step.first][step.second].attack = (matrix[step.first][step.second].attack - attacker.attack) < 0 ? 0 : (matrix[step.first][step.second].attack - attacker.attack);
+                }
+                else {
+                    matrix[step.first][step.second].lastAttack = true;
+                    matrix[step.first][step.second].attack -= attacker.attack / 2;
+                    //matrix[step.first][step.second].attack = (matrix[step.first][step.second].attack - attacker.attack / 2) < 0 ? 0 : (matrix[step.first][step.second].attack - attacker.attack / 2);
+                }
             }
         }
 
@@ -196,7 +197,7 @@ void bomb() {
     for (int i = 0; i < 9; ++i) {
         int nx = (target.x + bombX[i] + n) % n, ny = (target.y + bombY[i] + m) % m;
 
-        if (matrix[nx][ny].attack > 0 && matrix[ny][ny] != attacker) {
+        if (matrix[nx][ny].attack > 0 && matrix[nx][ny] != attacker) {
             if (matrix[nx][ny] == target) {
                 matrix[nx][ny].lastAttack = true;
                 //matrix[nx][step.second].attack = (matrix[step.first][step.second].attack - attacker.attack) < 0 ? 0 : (matrix[step.first][step.second].attack - attacker.attack);
