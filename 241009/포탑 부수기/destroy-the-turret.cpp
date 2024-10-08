@@ -110,8 +110,9 @@ void setAttacker() {
 // 3. 행과 열의 합이 가장 작은 포탑
 // 4. 열 값이 가장 작은 포탑.
 
-void setTarget() {
+bool setTarget() {
     target = { INT_MAX, 0, 9, 9 };
+    Turret cur = { INT_MAX, 0, 9, 9 };
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             if (matrix[i][j].attack > 0 && matrix[i][j] < target && attacker != matrix[i][j]) {
@@ -119,6 +120,11 @@ void setTarget() {
             }
         }
     }
+
+    if (target == cur) {
+        return false;
+    }
+    return true;
 }
 
 // 공격 방법 (레이저 -> 포탄)
@@ -254,7 +260,9 @@ int main() {
     for (int i = 0; i < k; ++i) {
         ++tick;
         setAttacker();
-        setTarget();
+        if (!setTarget()) {
+            break;
+        }
         if (!BFS()) {
             bomb();
         }
