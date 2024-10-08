@@ -231,7 +231,10 @@ void bomb() {
 
 // 공격에 무관했던 포탑은 공격력 1 증가.
 
+bool gameEnd;
+
 void resetTurret() {
+    int count = 0;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             if (matrix[i][j].attack > 0 && !matrix[i][j].lastAttack) {
@@ -240,7 +243,15 @@ void resetTurret() {
             else {
                 matrix[i][j].lastAttack = false;
             }
+
+            if (matrix[i][j].attack > 0) {
+                ++count;
+            }
         }
+    }
+
+    if (count <= 1) {
+        gameEnd = true;
     }
 }
 
@@ -260,14 +271,16 @@ int main() {
     for (int i = 0; i < k; ++i) {
         ++tick;
         setAttacker();
-        if (!setTarget()) {
-            break;
-        }
+        setTarget();
         if (!BFS()) {
             bomb();
         }
         resetTurret();
         debug();
+
+        if (gameEnd) {
+            break;
+        }
     }
 
     int ans = 0;
