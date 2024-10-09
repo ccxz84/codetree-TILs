@@ -21,8 +21,8 @@ int l, n, q;
 int w[MAX_N], h[MAX_N], x[MAX_N], y[MAX_N], k[MAX_N], dam[MAX_N];
 bool out[MAX_N];
 
-inline bool isValid(int x, int y) {
-    return x >= 0 && x < l && y >= 0 && y < l;
+inline bool isValid(int x, int y, int w, int h) {
+    return x >= 0 && x < l && y >= 0 && y < l && x + h >= 0 && x + h < l && y + w >= 0 && y + w < l;
 }
 
 // 밀려난 곳에 벽이 있는지, 함정이 몇 개인지 체크
@@ -74,7 +74,7 @@ void BFS(int idx, int dir) {
 
         int nx = x[nextIdx] + dirX[dir], ny = y[nextIdx] + dirY[dir];
 
-        if (isValid(nx, ny)) {
+        if (isValid(nx, ny, w[nextIdx], h[nextIdx])) {
             // 밀려난 좌표 추가
             pos[nextIdx] = { nx, ny };
             auto ret = overlapWall(nx, ny, w[nextIdx], h[nextIdx]);
@@ -124,6 +124,27 @@ void BFS(int idx, int dir) {
     }
  }
 
+void print()
+{
+    vector<vector<int>> a(l, vector<int>(l, 0));
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = x[i]; j < x[i] + h[i]; ++j) {
+            for (int k = y[i]; k < y[i] + w[i]; ++k) {
+                a[j][k] = i + 1;
+            }
+        }
+    }
+
+    for (int i = 0; i < l; ++i) {
+        for (int j = 0; j < l; ++j) {
+            debugFile << a[i][j] << ' ';
+        }
+        debugFile << '\n';
+    }
+    debugFile << '\n';
+}
+
 void moveKnight() {
     int idx, dir;
 
@@ -135,6 +156,8 @@ void moveKnight() {
     }
 
     BFS(idx, dir);
+
+    print();
 }
 
 void init() {
