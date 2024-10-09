@@ -162,17 +162,10 @@ void solution() {
     for (int i = 0; i < k; ++i) {
         movePeople();
 
-        int minRecX, minRecY, size;
-
-        findMinRec(minRecX, minRecY, size);
-        rotateMaze(minRecX, minRecY, size);
-        peopleRotate(minRecX, minRecY, size);
-        rotateExtraction(minRecX, minRecY, size);
-
         bool allout = true;
 
-        for (int i = 0; i < m; ++i) {
-            if (!out[i]) {
+        for (int j = 0; j < m; ++j) {
+            if (!out[j]) {
                 allout = false;
                 break;
             }
@@ -181,6 +174,13 @@ void solution() {
         if (allout) {
             break;
         }
+
+        int minRecX, minRecY, size;
+
+        findMinRec(minRecX, minRecY, size);
+        rotateMaze(minRecX, minRecY, size);
+        peopleRotate(minRecX, minRecY, size);
+        rotateExtraction(minRecX, minRecY, size);
     }
     *output << moveDistance << '\n';
     *output << extractionX+1 << ' ' << extractionY+1 << '\n';
