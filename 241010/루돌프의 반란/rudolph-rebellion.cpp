@@ -244,27 +244,27 @@ void solution() {
     print();
     for (int i = 0; i < m; ++i) {
         ++tick;
-        debugFile << "tick: " << tick << '\n';
+        // debugFile << "tick: " << tick << '\n';
         moveRudolf();
         if (aliveSanta <= 0) {
             break;
         }
-        debugFile << "rudol: " << tick << '\n';
-        print();
+        // debugFile << "rudol: " << tick << '\n';
+        // print();
         moveSanta();
         if (aliveSanta <= 0) {
             break;
         }
-        debugFile << "santa: " << tick << '\n';
-        print();
+        // debugFile << "santa: " << tick << '\n';
+        // print();
 
         for (int j = 0; j < p; ++j) {
             if (!out[j]) {
                 ++score[j];
             }
         }
-        debugFile << "alive bonus: " << tick << '\n';
-        print();
+        // debugFile << "alive bonus: " << tick << '\n';
+        // print();
     }
 
     for (int i = 0; i < p; ++i) {
