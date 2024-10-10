@@ -22,7 +22,7 @@ inline int getXIndex(int x, int y, int size, int degree) {
     case 90:
         return y;
     case 180:
-        return size - 1 - y;
+        return size - 1 - x;
     case 270:
         return size - 1 - y;
     }
@@ -32,7 +32,7 @@ inline int getYIndex(int x, int y, int size, int degree) {
     case 90:
         return size - 1 - x;
     case 180:
-        return size - 1 - x;
+        return size - 1 - y;
     case 270:
         return x;
     }
@@ -66,55 +66,51 @@ int BFS(vector<vector<int>>& mat, queue<int>& numQueue) {
     queue<pair<int, int>> qu;
 
     int count = 0;
-    int prevCount;
 
-    do {
-        prevCount = count;
-        vector<vector<bool>> visited(5, vector<bool>(5, 0));
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 0; j < 5; ++j) {
-                if (!visited[i][j]) {
-                    qu.push({ i, j });
-                    visited[i][j] = true;
+    vector<vector<bool>> visited(5, vector<bool>(5, 0));
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            if (!visited[i][j]) {
+                qu.push({ i, j });
+                visited[i][j] = true;
 
-                    int num = mat[i][j];
+                int num = mat[i][j];
 
-                    vector<pair<int, int>> posList = { {i,j} };
+                vector<pair<int, int>> posList = { {i,j} };
 
-                    while (!qu.empty()) {
-                        auto pos = qu.front();
-                        qu.pop();
+                while (!qu.empty()) {
+                    auto pos = qu.front();
+                    qu.pop();
 
-                        for (int a = 0; a < 4; ++a) {
-                            int nx = pos.first + dirX[a], ny = pos.second + dirY[a];
+                    for (int a = 0; a < 4; ++a) {
+                        int nx = pos.first + dirX[a], ny = pos.second + dirY[a];
 
-                            if (isValid(nx, ny) && !visited[nx][ny] && mat[nx][ny] == num) {
-                                visited[nx][ny] = true;
-                                qu.push({ nx, ny });
-                                posList.push_back({ nx, ny });
-                            }
+                        if (isValid(nx, ny) && !visited[nx][ny] && mat[nx][ny] == num) {
+                            visited[nx][ny] = true;
+                            qu.push({ nx, ny });
+                            posList.push_back({ nx, ny });
                         }
                     }
+                }
 
-                    if (posList.size() >= 3) {
-                        for (int a = 0; a < posList.size(); ++a) {
-                            mat[posList[a].first][posList[a].second] = -1;
-                        }
-                        count += posList.size();
+                if (posList.size() >= 3) {
+                    for (int a = 0; a < posList.size(); ++a) {
+                        mat[posList[a].first][posList[a].second] = -1;
                     }
+                    count += posList.size();
                 }
             }
         }
+    }
 
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 4; j >= 0; --j) {
-                if (mat[j][i] == -1) {
-                    mat[j][i] = numQueue.front();
-                    numQueue.pop();
-                }
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 4; j >= 0; --j) {
+            if (mat[j][i] == -1) {
+                mat[j][i] = numQueue.front();
+                numQueue.pop();
             }
         }
-    } while (count != prevCount);
+    }
 
     return count;
 }
@@ -136,16 +132,23 @@ void printRotate(vector<vector<int>> mat, queue<int> numQueue) {
     debugFile << "\n";
 }
 
+//inline bool compare(int score1, int degree1, int x1, int y1, int score2, int degree2, int x2, int y2) {
+//    if (score1 != score2) return score1 > score2;
+//    if (degree1 != degree2) return degree1 < degree2;
+//    if (x1 != x2) return x1 
+//}
+
 int find() {
     score = 0;
     queue<int> maxQueue;
     vector<vector<int>> maxMat;
+    int minDegree;
 
     int debugX;
     int debugY;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            for (int a = 1; a <= 3; ++a) {
+    for (int a = 1; a <= 3; ++a) {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
                 auto mat = matrix;
                 auto numQueue = numberList;
                 rotateMatrix(j, i, 3, a * 90, mat);
@@ -167,6 +170,17 @@ int find() {
     }
 
     if (score > 0) {
+        while (true) {
+            int co = BFS(maxMat, maxQueue);
+
+            if (co > 0) {
+                score += co;
+            }
+            else {
+                break;
+            }
+        }
+        
         numberList = maxQueue;
         matrix = maxMat;
 
