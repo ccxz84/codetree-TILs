@@ -20,6 +20,7 @@ int sanMatrix[MAX_N][MAX_N];
 
 int santaX[MAX_P], santaY[MAX_P], stun[MAX_P], santaPower, score[MAX_P];
 int rudolX, rudolY, rudolPower;
+int aliveSanta;
 
 bool out[MAX_P];
 
@@ -50,6 +51,7 @@ inline void changePosSanta(int idx, int x, int y) {
 inline void outSanta(int idx) {
     sanMatrix[santaX[idx]][santaY[idx]] = 0;
     out[idx] = true;
+    --aliveSanta;
 }
 
 void collision(int idx, int dx, int dy, int power) {
@@ -77,30 +79,58 @@ void moveRudolf() {
     int minDis = INT_MAX, x, y;
     int sanX = 0, sanY = 0, sanIdx, minDir;
 
-    // 가장 가까우면서 우선순위 높은 산타 구하기
+    //// 가장 가까우면서 우선순위 높은 산타 구하기
+    //for (int i = 0; i < 8; ++i) {
+    //    int nx = rudolX + rudolDirX[i], ny = rudolY + rudolDirY[i];
+    //    
+    //    // 이동할 위치가 유효한가?
+    //    if (isVaild(nx, ny)) {
+
+    //        // 모든 산타를 뒤져 거리체크
+    //        for (int j = 0; j < p; ++j) {
+
+    //            // 아웃 당한 산타는 건너뛰기
+    //            if (out[j]) continue;
+
+    //            int dis = getDistance(santaX[j], santaY[j], nx, ny);
+
+    //            // 거리가 짧거나, x가 크고, y가 큰 순으로 우선순위
+    //            if (compare(santaX[j], santaY[j], dis, sanX, sanY, minDis)) {
+    //                minDis = dis;
+    //                x = nx; y = ny;
+    //                sanX = santaX[j]; sanY = santaY[j];
+    //                sanIdx = j;
+    //                minDir = i;
+    //            }
+    //        }
+    //    }
+    //}
+
+    for (int j = 0; j < p; ++j) {
+        // 아웃 당한 산타는 건너뛰기
+        if (out[j]) continue;
+
+        int dis = getDistance(santaX[j], santaY[j], rudolX, rudolY);
+
+        // 거리가 짧거나, x가 크고, y가 큰 순으로 우선순위
+        if (compare(santaX[j], santaY[j], dis, sanX, sanY, minDis)) {
+            minDis = dis;
+            sanX = santaX[j]; sanY = santaY[j];
+            sanIdx = j;
+        }
+    }
+
+    minDis = INT_MAX;
+
     for (int i = 0; i < 8; ++i) {
         int nx = rudolX + rudolDirX[i], ny = rudolY + rudolDirY[i];
-        
-        // 이동할 위치가 유효한가?
-        if (isVaild(nx, ny)) {
 
-            // 모든 산타를 뒤져 거리체크
-            for (int j = 0; j < p; ++j) {
+        int dis = getDistance(sanX, sanY, nx, ny);
 
-                // 아웃 당한 산타는 건너뛰기
-                if (out[j]) continue;
-
-                int dis = getDistance(santaX[j], santaY[j], nx, ny);
-
-                // 거리가 짧거나, x가 크고, y가 큰 순으로 우선순위
-                if (compare(santaX[j], santaY[j], dis, sanX, sanY, minDis)) {
-                    minDis = dis;
-                    x = nx; y = ny;
-                    sanX = santaX[j]; sanY = santaY[j];
-                    sanIdx = j;
-                    minDir = i;
-                }
-            }
+        if (dis < minDis) {
+            minDis = dis;
+            x = nx; y = ny;
+            minDir = i;
         }
     }
 
@@ -182,6 +212,8 @@ void init() {
         --santaX[idx]; --santaY[idx];
         sanMatrix[santaX[idx]][santaY[idx]] = idx + 1;
     }
+
+    aliveSanta = p;
 }
 
 void print() {
@@ -214,26 +246,25 @@ void solution() {
         ++tick;
         debugFile << "tick: " << tick << '\n';
         moveRudolf();
+        if (aliveSanta <= 0) {
+            break;
+        }
         debugFile << "rudol: " << tick << '\n';
         print();
         moveSanta();
+        if (aliveSanta <= 0) {
+            break;
+        }
         debugFile << "santa: " << tick << '\n';
         print();
-
-        bool allOut = true;
 
         for (int j = 0; j < p; ++j) {
             if (!out[j]) {
                 ++score[j];
-                allOut = false;
             }
         }
         debugFile << "alive bonus: " << tick << '\n';
         print();
-
-        if (allOut) {
-            break;
-        }
     }
 
     for (int i = 0; i < p; ++i) {
