@@ -1,262 +1,118 @@
 #include <iostream>
-#include <fstream>
 #include <queue>
-#include <climits>
-#include <stack>
+
+#define MAX_L 70
+
 using namespace std;
 
-ifstream inputFile("./input.txt");
-istream* input = &cin;
-ofstream outputFile("./output.txt");
-ofstream debugFile("./debug.txt");
-ostream* output = &cout;
+int R, C, K; // 행, 열, 골렘의 개수를 의미합니다
+int A[MAX_L+3][MAX_L]; // 실제 숲을 [3~R+2][0~C-1]로 사용하기위해 행은 3만큼의 크기를 더 갖습니다
+int dy[4] = {-1, 0, 1, 0}, dx[4] = {0, 1, 0, -1};
+bool isExit[MAX_L+3][MAX_L]; // 해당 칸이 골렘의 출구인지 저장합니다
+int answer; // 각 정령들이 도달할 수 있는 최하단 행의 총합을 저장합니다
 
-#define MAX_R 70
-#define MAX_C 70
-#define MAX_K 1000
-
-int k, r, c;
-vector<vector<int>> matrix;
-int score;
-
-int golemExtraction[MAX_K + 1];
-pair<int, int> golemCenter[MAX_K + 1];
-
-inline bool isValid(int x, int y) {
-    return x >= 0 && x < r+3 && y >= 0 && y < c;
-}
-
-int dirGolemX[5] = { 0, -1, 1, 0, 0 }, dirGolemY[5] = { 0, 0, 0, -1, 1 };
-
-bool moveGolemDown(int x, int y, vector<vector<int>>& mat, int& extraction, int num) {
-    // 남쪽으로 한 칸
-    // 중심을 기준으로 왼쪽, 아래, 오른쪽 칸이 이동가능한지 확인
-    
-
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i], ny = y + dirGolemY[i];
-
-        if (isValid(nx, ny)) {
-            mat[nx][ny] = 0;
-        }
-    }
-
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i] + 1, ny = y + dirGolemY[i];
-        if (isValid(nx, ny) && mat[nx][ny] == 0) {
-            mat[nx][ny] = num;
-        }
-        else if (nx != -1) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool rotateGolemLeft(int x, int y, vector<vector<int>>& mat, int& extraction, int num) {
-    // 좌로 한 칸 및 회전
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i], ny = y + dirGolemY[i];
-
-        if (isValid(nx, ny)) {
-            mat[nx][ny] = 0;
-        }
-    }
-
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i], ny = y + dirGolemY[i] - 1;
-        if (isValid(nx, ny) && mat[nx][ny] == 0) {
-            mat[nx][ny] = num;
-        }
-        else if(i != 1 || nx != -1) {
-            return false;
-        }
-    }
-
-    extraction = (extraction - 1) < 0 ? 4 - abs((extraction - 1) % 4) : (extraction - 1) % 4;
-
-    if (moveGolemDown(x, y - 1, mat, extraction, num)) {
-        return true;
-    }
-    return false;
-}
-
-bool rotateGolemRight(int x, int y, vector<vector<int>>& mat, int& extraction, int num) {
-    // 우로 한 칸 및 회전
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i], ny = y + dirGolemY[i];
-
-        if (isValid(nx, ny)) {
-            mat[nx][ny] = 0;
-        }
-    }
-
-    for (int i = 0; i < 5; ++i) {
-        int nx = x + dirGolemX[i], ny = y + dirGolemY[i] + 1;
-        if (isValid(nx, ny) && mat[nx][ny] == 0) {
-            mat[nx][ny] = num;
-        }
-        else if (i != 1 || nx != -1) {
-            return false;
-        }
-    }
-
-    extraction = (extraction +1) % 4;
-
-    if (moveGolemDown(x, y + 1, mat, extraction, num)) {
-        return true;
-    }
-    return false;
-}
-
+// (y, x)가 숲의 범위 안에 있는지 확인하는 함수입니다
 bool inRange(int y, int x) {
-    return 3 <= y && y < r + 3 && 0 <= x && x < c;
+    return 3 <= y && y < R+3 && 0 <= x && x < C;
 }
 
-bool rotateGolem(int x, int y, int num) {
-    int count = 0;
-    // 골렘이 최대한 남쪽으로 내려 가게 이동시킴.
-    while (true) {
-        vector<vector<int>> mat = matrix;
-        int extraction = golemExtraction[num];
-        if (moveGolemDown(x, y, mat, extraction, num)) {
-            matrix = mat;
-            golemExtraction[num] = extraction;
-            ++x;
-            golemCenter[num] = { x, y };
-            continue;
+// 숲에 있는 골렘들이 모두 빠져나갑니다
+void resetMap() {
+    for (int i=0;i<R+3;i++){
+        for (int j=0;j<C;j++){
+            A[i][j] = 0;
+            isExit[i][j] = false;
         }
-
-        mat = matrix;
-        extraction = golemExtraction[num];
-        if (rotateGolemLeft(x, y, mat, extraction, num)) {
-            matrix = mat;
-            golemExtraction[num] = extraction;
-            ++x; --y;
-            golemCenter[num] = { x, y };
-            continue;
-        }
-
-        mat = matrix;
-        extraction = golemExtraction[num];
-        if (rotateGolemRight(x, y, mat, extraction, num)) {
-            matrix = mat;
-            golemExtraction[num] = extraction;
-            ++x; ++y;
-            golemCenter[num] = { x, y };
-            continue;
-        }
-
-        break;
     }
-
-    if (!inRange(x-1, y)) {
-        return false;
-    }
-
-    return true;
 }
 
-int dirX[4] = { -1, 1, 0, 0 };
-int dirY[4] = { 0, 0, -1, 1 };
+// 골렘의 중심이 y, x에 위치할 수 있는지 확인합니다.
+// 북쪽에서 남쪽으로 내려와야하므로 중심이 (y, x)에 위치할때의 범위와 (y-1, x)에 위치할떄의 범위 모두 확인합니다
+bool canGo(int y, int x) {
+    bool flag = 0 <= x-1 && x+1 < C && y+1 < R+3;
+    flag = flag && (A[y-1][x-1] == 0);
+    flag = flag && (A[y-1][x] == 0);
+    flag = flag && (A[y-1][x+1] == 0);
+    flag = flag && (A[y][x-1] == 0);
+    flag = flag && (A[y][x] == 0);
+    flag = flag && (A[y][x+1] == 0);
+    flag = flag && (A[y+1][x] == 0);
+    return flag;
+}
 
-int extractionDx[4] = { -1, 0, 1, 0 }, extractionDy[4] = { 0, 1, 0, -1 };
-
-void moveSpirit(int x, int y) {
-    // 출구를 타고, 인접한 다른 정령으로 옮겨탈 수 있음.
-    queue<pair<int, int>> qu;
-    qu.push({ x, y });
-
-    int maxRow = 0;
-
-    int dirX[4] = { -1, 1, 0, 0 }, dirY[4] = { 0, 0, -1, 1 };
-
-    vector<bool> visited(k+1, 0);
-
-    while (!qu.empty()) {
-        auto pos = qu.front();
-        qu.pop();
-
-        if (pos.first + 1 > maxRow) {
-            maxRow = pos.first + 1;
+// 정령이 움직일 수 있는 모든 범위를 확인하고 도달할 수 있는 최하단 행을 반환합니다
+int bfs(int y, int x) {
+    int result = y;
+    queue<pair<int, int> > q;
+    bool visit[MAX_L+3][MAX_L];
+    for (int i=0;i<R+3;i++){
+        for (int j=0;j<C;j++){
+            visit[i][j] = false;
         }
-        int num = matrix[pos.first][pos.second];
-        int dir = golemExtraction[num];
+    }
 
-        for (int i = 0; i < 4; ++i) {
-            int nx = pos.first + extractionDx[dir] + dirX[i], ny = pos.second + extractionDy[dir] + dirY[i];
-
-            if (isValid(nx, ny) && matrix[nx][ny] != 0 && matrix[nx][ny] != num && !visited[matrix[nx][ny]]) {
-                qu.push(golemCenter[matrix[nx][ny]]);
-                visited[matrix[nx][ny]] = true;
+    q.push(make_pair(y, x));
+    visit[y][x] = true;
+    while(!q.empty()) {
+        pair<int, int> cur = q.front();
+        q.pop();
+        for (int k=0; k<4; k++) {
+            int ny = cur.first + dy[k], nx = cur.second + dx[k];
+            // 정령의 움직임은 골렘 내부이거나
+            // 골렘의 탈출구에 위치하고 있다면 다른 골렘으로 옮겨 갈 수 있습니다
+            if (inRange(ny, nx) && !visit[ny][nx] && (A[ny][nx] == A[cur.first][cur.second] || (A[ny][nx] != 0 && isExit[cur.first][cur.second]))) {
+                q.push(make_pair(ny, nx));
+                visit[ny][nx] = true;
+                result = max(result, ny);
             }
         }
     }
-
-    
-    if (maxRow != 0) {
-        score += maxRow + 1 - 3;
-        //debugFile << maxRow + 1 - 3 << "\n\n";
-    }
+    return result;
 }
 
-void print() {
-    for (int i = 0; i < r+3; ++i) {
-        for (int j = 0; j < c; ++j) {
-            debugFile << matrix[i][j] << ' ';
+// 골렘id가 중심 (y, x), 출구의 방향이 d일때 규칙에 따라 움직임을 취하는 함수입니다
+// 1. 남쪽으로 한 칸 내려갑니다.
+// 2. (1)의 방법으로 이동할 수 없으면 서쪽 방향으로 회전하면서 내려갑니다.
+// 3. (1)과 (2)의 방법으로 이동할 수 없으면 동쪽 방향으로 회전하면서 내려갑니다.
+void down(int y, int x, int d, int id) {
+    if (canGo(y+1, x)) {
+        // 아래로 내려갈 수 있는 경우입니다
+        down(y+1, x, d, id);
+    }
+    else if (canGo(y+1, x-1)) {
+        // 왼쪽 아래로 내려갈 수 있는 경우입니다
+        down(y+1, x-1, (d+3)%4, id);
+    }
+    else if (canGo(y+1, x+1)) {
+        // 오른쪽 아래로 내려갈 수 있는 경우입니다
+        down(y+1, x+1, (d+1)%4, id);
+    }
+    else {
+        // 1, 2, 3의 움직임을 모두 취할 수 없을떄 입니다.
+        if (!inRange(y-1, x-1) || !inRange(y+1, x+1)) {
+            // 숲을 벗어나는 경우 모든 골렘이 숲을 빠져나갑니다
+            resetMap();
+        } else {
+            // 골렘이 숲 안에 정착합니다
+            A[y][x] = id;
+            for (int k = 0; k < 4; k++)
+                A[y+dy[k]][x+dx[k]] = id;
+            // 골렘의 출구를 기록하고
+            isExit[y+dy[d]][x+dx[d]] = true;
+            // bfs를 통해 정령이 최대로 내려갈 수 있는 행를 계산하여 누적합니다
+            answer += bfs(y, x) - 3 + 1;
         }
-        debugFile << '\n';
     }
-    debugFile << '\n';
-}
-
-void resetBoard() {
-    matrix = vector<vector<int>>(r + 3, vector<int>(c, 0));
-}
-
-void solution() {
-    for (int i = 1; i <= k; ++i) {
-        int c, d;
-
-        *input >> c >> d;
-        golemExtraction[i] = d;
-        golemCenter[i] = { 0, c - 1 };
-
-        /*for (int i = 0; i < 5; ++i) {
-
-        }*/
-
-        if (!rotateGolem(0, c - 1, i)) {
-            resetBoard();
-            continue;
-        }
-
-        //print();
-        //debugFile << "center: " << golemCenter[i].first << ' ' << golemCenter[i].second << '\n';
-        //debugFile << "extraction: " << golemCenter[i].first + extractionDx[golemExtraction[i]] << ' ' << golemCenter[i].second + extractionDy[golemExtraction[i]] << '\n';
-        //debugFile << "dir: " << golemExtraction[i] << '\n';
-
-        moveSpirit(golemCenter[i].first, golemCenter[i].second);
-    }
-
-    *output << score << '\n';
-}
-
-void init() {
-    *input >> r >> c >> k;
-    matrix = vector<vector<int>>(r + 3, vector<int>(c, 0));
 }
 
 int main() {
-    if (inputFile.is_open()) {
-        input = &inputFile;  // 파일을 열었다면 파일로 입력을 받음
+    cin >> R >> C >> K;
+    for (int id = 1; id <= K; id++) { // 골렘 번호 id
+        int x, d;
+        cin >> x >> d; // 골렘의 출발 x좌표, 방향 d를 입력받습니다
+        x--;
+        down(0, x, d, id);
     }
-
-    if (outputFile.is_open()) {
-        output = &outputFile;  // 파일을 열었다면 출력도 파일로
-    }
-
-    init();
-    solution();
+    cout << answer << endl;
+    return 0;
 }
