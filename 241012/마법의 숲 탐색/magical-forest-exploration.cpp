@@ -151,7 +151,7 @@ bool rotateGolem(int x, int y, int num) {
         break;
     }
 
-    if (!inRange(x, y)) {
+    if (!inRange(x-1, y)) {
         return false;
     }
 
@@ -235,6 +235,7 @@ void solution() {
         print();
         debugFile << "center: " << golemCenter[i].first << ' ' << golemCenter[i].second << '\n';
         debugFile << "extraction: " << golemCenter[i].first + extractionDx[golemExtraction[i]] << ' ' << golemCenter[i].second + extractionDy[golemExtraction[i]] << '\n';
+        debugFile << "dir: " << golemExtraction[i] << '\n';
 
         moveSpirit(golemCenter[i].first, golemCenter[i].second);
     }
