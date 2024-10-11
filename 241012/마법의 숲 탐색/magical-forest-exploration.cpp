@@ -197,7 +197,7 @@ void moveSpirit(int x, int y) {
     
     if (maxRow != 0) {
         score += maxRow + 1 - 3;
-        debugFile << maxRow + 1 - 3 << "\n\n";
+        //debugFile << maxRow + 1 - 3 << "\n\n";
     }
 }
 
@@ -232,10 +232,10 @@ void solution() {
             continue;
         }
 
-        print();
-        debugFile << "center: " << golemCenter[i].first << ' ' << golemCenter[i].second << '\n';
-        debugFile << "extraction: " << golemCenter[i].first + extractionDx[golemExtraction[i]] << ' ' << golemCenter[i].second + extractionDy[golemExtraction[i]] << '\n';
-        debugFile << "dir: " << golemExtraction[i] << '\n';
+        //print();
+        //debugFile << "center: " << golemCenter[i].first << ' ' << golemCenter[i].second << '\n';
+        //debugFile << "extraction: " << golemCenter[i].first + extractionDx[golemExtraction[i]] << ' ' << golemCenter[i].second + extractionDy[golemExtraction[i]] << '\n';
+        //debugFile << "dir: " << golemExtraction[i] << '\n';
 
         moveSpirit(golemCenter[i].first, golemCenter[i].second);
     }
