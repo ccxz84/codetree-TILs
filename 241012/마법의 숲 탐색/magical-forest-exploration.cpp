@@ -23,7 +23,7 @@ int golemExtraction[MAX_K + 1];
 pair<int, int> golemCenter[MAX_K + 1];
 
 inline bool isValid(int x, int y) {
-    return x >= 0 && x < r && y >= 0 && y < c;
+    return x >= 0 && x < r+3 && y >= 0 && y < c;
 }
 
 int dirGolemX[5] = { 0, -1, 1, 0, 0 }, dirGolemY[5] = { 0, 0, 0, -1, 1 };
@@ -46,7 +46,7 @@ bool moveGolemDown(int x, int y, vector<vector<int>>& mat, int& extraction, int 
         if (isValid(nx, ny) && mat[nx][ny] == 0) {
             mat[nx][ny] = num;
         }
-        else {
+        else if (nx != -1) {
             return false;
         }
     }
@@ -74,7 +74,7 @@ bool rotateGolemLeft(int x, int y, vector<vector<int>>& mat, int& extraction, in
         }
     }
 
-    extraction = abs((extraction - 1) % 4);
+    extraction = (extraction - 1) < 0 ? 4 - abs((extraction - 1) % 4) : (extraction - 1) % 4;
 
     if (moveGolemDown(x, y - 1, mat, extraction, num)) {
         return true;
@@ -102,12 +102,16 @@ bool rotateGolemRight(int x, int y, vector<vector<int>>& mat, int& extraction, i
         }
     }
 
-    extraction = abs((extraction +1) % 4);
+    extraction = (extraction +1) % 4;
 
     if (moveGolemDown(x, y + 1, mat, extraction, num)) {
         return true;
     }
     return false;
+}
+
+bool inRange(int y, int x) {
+    return 3 <= y && y < r + 3 && 0 <= x && x < c;
 }
 
 bool rotateGolem(int x, int y, int num) {
@@ -121,7 +125,6 @@ bool rotateGolem(int x, int y, int num) {
             golemExtraction[num] = extraction;
             ++x;
             golemCenter[num] = { x, y };
-            ++count;
             continue;
         }
 
@@ -132,7 +135,6 @@ bool rotateGolem(int x, int y, int num) {
             golemExtraction[num] = extraction;
             ++x; --y;
             golemCenter[num] = { x, y };
-            ++count;
             continue;
         }
 
@@ -143,14 +145,13 @@ bool rotateGolem(int x, int y, int num) {
             golemExtraction[num] = extraction;
             ++x; ++y;
             golemCenter[num] = { x, y };
-            ++count;
             continue;
         }
 
         break;
     }
 
-    if (count == 0) {
+    if (!inRange(x, y)) {
         return false;
     }
 
@@ -186,7 +187,7 @@ void moveSpirit(int x, int y) {
         for (int i = 0; i < 4; ++i) {
             int nx = pos.first + extractionDx[dir] + dirX[i], ny = pos.second + extractionDy[dir] + dirY[i];
 
-            if (isValid(nx, ny) && matrix[nx][ny] != num && !visited[matrix[nx][ny]]) {
+            if (isValid(nx, ny) && matrix[nx][ny] != 0 && matrix[nx][ny] != num && !visited[matrix[nx][ny]]) {
                 qu.push(golemCenter[matrix[nx][ny]]);
                 visited[matrix[nx][ny]] = true;
             }
@@ -195,13 +196,13 @@ void moveSpirit(int x, int y) {
 
     
     if (maxRow != 0) {
-        score += maxRow + 1;
-        debugFile << maxRow + 1 << "\n\n";
+        score += maxRow + 1 - 3;
+        debugFile << maxRow + 1 - 3 << "\n\n";
     }
 }
 
 void print() {
-    for (int i = 0; i < r; ++i) {
+    for (int i = 0; i < r+3; ++i) {
         for (int j = 0; j < c; ++j) {
             debugFile << matrix[i][j] << ' ';
         }
@@ -211,7 +212,7 @@ void print() {
 }
 
 void resetBoard() {
-    matrix = vector<vector<int>>(r, vector<int>(c, 0));
+    matrix = vector<vector<int>>(r + 3, vector<int>(c, 0));
 }
 
 void solution() {
@@ -243,7 +244,7 @@ void solution() {
 
 void init() {
     *input >> r >> c >> k;
-    matrix = vector<vector<int>>(r, vector<int>(c, 0));
+    matrix = vector<vector<int>>(r + 3, vector<int>(c, 0));
 }
 
 int main() {
